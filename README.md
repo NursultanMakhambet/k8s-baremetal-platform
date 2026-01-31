@@ -3,10 +3,10 @@
 Bare-metal Kubernetes via Kubespray. This repo holds inventory and vars; Kubespray is a submodule.
 
 **Layout**
-- `environments/<env>/host` — inventory; `group_vars/` for that env.
+- `environments/<env>/hosts` — inventory; `group_vars/` for that env.
 - `kubespray/` — submodule (don’t edit; override in env group_vars).
 - `playbooks/cluster.yml` — runs Kubespray with our inventory.
-- Kubespray expects groups like `k8s_cluster`, `kube_control_plane`, `kube_node`, `etcd`; we map from `k8s_master` / `k8s_worker` in `host`.
+- Kubespray expects groups like `k8s_cluster`, `kube_control_plane`, `kube_node`, `etcd`; we map from `k8s_master` / `k8s_worker` in `hosts`.
 
 **Setup**
 ```bash

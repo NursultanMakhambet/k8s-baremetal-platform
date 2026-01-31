@@ -1,4 +1,5 @@
 .venv/
+pkgs/grafana/.build
 *.retry
 .vault_pass
 *.vault

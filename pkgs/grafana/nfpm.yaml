@@ -1,0 +1,55 @@
+name: grafana
+arch: amd64
+platform: linux
+version: "12.0.1"
+release: 1
+section: Monitoring
+description: Analytics and interactive visualization web application
+maintainer: nursultan.makhambet@gmail.com 
+vendor: grafana labs
+homepage: https://grafana.com/grafana
+license: AGPL-3.0
+
+contents:
+  - dst: /opt/grafana
+    type: dir
+    file_info:
+      mode: 0755
+  - dst: /etc/grafana
+    type: dir
+    file_info:
+      mode: 0755
+  - dst: /etc/grafana/provisioning
+    type: dir
+    file_info:
+      mode: 0755
+      owner: grafana
+      group: grafana
+  - dst: /var/lib/grafana
+    type: dir
+    file_info:
+      mode: 0755
+      owner: grafana
+      group: grafana
+  - dst: /var/log/grafana
+    type: dir
+    file_info:
+      mode: 0755
+      owner: grafana
+      group: grafana
+  - dst: /var/lib/grafana/plugins
+    type: dir
+    file_info:
+      mode: 0755
+      owner: grafana
+      group: grafana
+  - src: .build/grafana-server.sh
+    dst: /etc/profile.d/grafana-server.sh
+  - src: .build/grafana-server
+    dst: /etc/sysconfig/grafana-server
+  - src: .build/grafana-server.service
+    dst: /etc/systemd/system/grafana-server.service
+  - src: .build/grafana-v12.0.1/
+    dst: /opt/grafana
+scripts:
+  preinstall: .build/preinstall.sh
