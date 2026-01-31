@@ -1,30 +1,23 @@
 # k8s-baremetal-platform
 
-Bare-metal Kubernetes with Kubespray (submodule). Inventory and vars live here.
+Bare-metal Kubernetes via Kubespray. This repo holds inventory and vars; Kubespray is a submodule.
 
-Layout:
-- `group_vars/all.yml` - shared vars like kubespray_version. Env overrides in `environments/<env>/group_vars/`.
-- `environments/local/` - inventory file `host`, group_vars per group.
-- `kubespray/` - submodule, upstream only. We don't edit it. Overrides in env group_vars.
-- `playbooks/cluster.yml` - runs Kubespray cluster.yml with our inventory.
-- `ansible.cfg` - default inventory, roles_path includes kubespray/roles.
+**Layout**
+- `environments/<env>/host` — inventory; `group_vars/` for that env.
+- `kubespray/` — submodule (don’t edit; override in env group_vars).
+- `playbooks/cluster.yml` — runs Kubespray with our inventory.
+- Kubespray expects groups like `k8s_cluster`, `kube_control_plane`, `kube_node`, `etcd`; we map from `k8s_master` / `k8s_worker` in `host`.
 
-Kubespray expects k8s_cluster, kube_control_plane, kube_node, etcd. We map those from k8s_master and k8s_worker in `environments/<env>/host`.
-
-Clone:
+**Setup**
 ```bash
-git clone --recurse-submodules <repo-url>
-# or: git submodule update --init --recursive
-# or: make kubespray-init
+git clone --recurse-submodules <repo>
+./bootstrap
+./make cluster   # or: make cluster (on Windows Git Bash use ./make)
 ```
+Requires Python 3 and SSH to the hosts. Edit `environments/local/group_vars/k8s_cluster/k8s-cluster.yml` for Kubespray settings.
 
-Run (local):
-```bash
-pip install -r kubespray/requirements.txt
-ansible-playbook -i environments/local/host playbooks/cluster.yml
-```
-Needs Ansible 2.14+, SSH to hosts. Tweak Kubespray in `environments/local/group_vars/k8s_cluster/k8s-cluster.yml`.
+**Kubespray version**  
+Set `kubespray_version` in `group_vars/all.yml` or env `group_vars`, then `./make kubespray-pin` and commit.
 
-Bump Kubespray: set `kubespray_version` in root or env group_vars/all.yml, then `make kubespray-pin` and commit.
-
-Roles go in `roles/`, use them in your playbooks.
+**Note**  
+Ansible control node is not supported on native Windows (run playbooks from WSL or Linux). Bootstrap on Windows still prepares the venv for use under WSL or from another machine.

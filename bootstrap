@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -e
+cd "$(dirname "$0")"
+
+OS="$(uname -s)"
+VENV=.venv
+if [[ "$OS" == MINGW* || "$OS" == MSYS* || "$OS" == CYGWIN* ]]; then
+  VENV_BIN=$VENV/Scripts
+else
+  VENV_BIN=$VENV/bin
+fi
+
+# make
+if ! command -v make >/dev/null 2>&1; then
+  case "$OS" in
+    Darwin)  command -v brew >/dev/null 2>&1 && brew install make || { echo "Install Homebrew"; exit 1; } ;;
+    Linux)
+      for c in apt-get dnf yum apk zypper; do
+        command -v $c >/dev/null 2>&1 && { sudo $c update 2>/dev/null; sudo $c install -y make; break; } || true
+      done
+      command -v make >/dev/null 2>&1 || { echo "Install make"; exit 1; } ;;
+    MINGW*|MSYS*|CYGWIN*)
+      command -v winget >/dev/null 2>&1 && winget install -e --id GnuWin32.Make || true
+      for d in "/c/Program Files (x86)/GnuWin32/bin" "/c/Program Files/GnuWin32/bin"; do
+        [ -x "$d/make.exe" ] && export PATH="$d:$PATH" && break
+      done
+      command -v make >/dev/null 2>&1 || { echo "make not found"; exit 1; } ;;
+    *) echo "Unsupported: $OS"; exit 1 ;;
+  esac
+fi
+
+[ -f "$VENV_BIN/activate" ] && { echo "Venv exists. Run: ./make cluster"; exit 0; }
+
+# venv + ansible
+if [[ "$OS" == MINGW* || "$OS" == MSYS* || "$OS" == CYGWIN* ]]; then
+  U="${USERNAME:-$USER}"
+  PY=
+  for v in Python312 Python311 Python310; do
+    [ -x "/c/Users/$U/AppData/Local/Programs/Python/$v/python.exe" ] && PY="/c/Users/$U/AppData/Local/Programs/Python/$v/python.exe" && break
+  done
+  [ -z "$PY" ] && { echo "Install Python: winget install Python.Python.3.12"; exit 1; }
+  "$PY" -m venv "$VENV"
+  "$VENV_BIN/python" -m pip install --upgrade pip
+  "$VENV_BIN/python" -m pip install -r kubespray/requirements.txt
+else
+  make bootstrap
+fi
+
+echo "Done. Run: ./make cluster"

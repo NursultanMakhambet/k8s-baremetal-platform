@@ -49,4 +49,3 @@ master3.k8s.local ansible_host=192.168.1.103 instance_name=k8s_master3 primary_n
 [k8s_worker]
 worker1.k8s.local ansible_host=192.168.1.201 instance_name=k8s_worker1
 worker2.k8s.local ansible_host=192.168.1.202 instance_name=k8s_worker2
-worker3.k8s.local ansible_host=192.168.1.203 instance_name=k8s_worker3
