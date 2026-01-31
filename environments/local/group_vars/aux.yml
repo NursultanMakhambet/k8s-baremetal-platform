@@ -1,0 +1,7 @@
+---
+alertmanager_chat_webhook: "https://chat.googleapis.com/v1/spaces/..."
+minio_cassandra_copy_backups_count: 1
+grafana_conf_server_root_url: "https://{{ environment_name }}.{{ main_domain }}/grafana/"
+grafana_pyroscope_deploy: true
+grafana_agent_flow_deploy: true
+

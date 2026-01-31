@@ -1,0 +1,40 @@
+[all:children]
+k8s
+aux
+db
+storage
+
+[k8s:children]
+k8s_master
+k8s_worker
+
+[all:vars]
+ansible_ssh_private_key_file=~/.ssh/id_ed25519
+
+[aux]
+aux1.node.local ansible_host=192.168.1.190 chrony_server=True
+
+[db]
+db1.node.local ansible_host=192.168.1.110 consul_server=True cassandra_medusa_cron_enabled=True qdrant_is_primary_host=True
+db2.node.local ansible_host=192.168.1.111 consul_server=False cassandra_medusa_cron_enabled=False qdrant_is_primary_host=False
+db3.node.local ansible_host=192.168.1.112 consul_server=False cassandra_medusa_cron_enabled=False qdrant_is_primary_host=False
+
+[db:vars]
+qdrant_primary_host=192.168.1.110
+
+[storage]
+stor1.node.local ansible_host=192.168.1.151 seaweedfs_master=True
+stor2.node.local ansible_host=192.168.1.152 seaweedfs_master=False
+stor3.node.local ansible_host=192.168.1.153 seaweedfs_master=False
+
+[k8s_master]
+master1.k8s.local ansible_host=192.168.1.101 instance_name=k8s_master1 primary_node=True
+master2.k8s.local ansible_host=192.168.1.102 instance_name=k8s_master2 primary_node=False
+master3.k8s.local ansible_host=192.168.1.103 instance_name=k8s_master3 primary_node=False
+
+[k8s_worker]
+worker1.k8s.local ansible_host=192.168.1.201 instance_name=k8s_worker1
+worker2.k8s.local ansible_host=192.168.1.202 instance_name=k8s_worker2
+worker3.k8s.local ansible_host=192.168.1.203 instance_name=k8s_worker3
+
+

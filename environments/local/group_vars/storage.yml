@@ -1,0 +1,7 @@
+---
+storage_directories:
+  - "/mnt/stor1"
+seaweedfs_check_storage_directories_mount: false
+seaweedfs_master_volume_size_limit_mb: 1024
+seaweedfs_volume_min_free_space: "5GiB"
+
