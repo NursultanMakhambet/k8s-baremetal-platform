@@ -1,0 +1,4 @@
+# runs Kubespray cluster.yml with our inventory
+# ansible-playbook -i environments/local/host playbooks/cluster.yml
+
+- import_playbook: ../kubespray/cluster.yml

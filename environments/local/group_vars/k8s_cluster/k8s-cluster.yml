@@ -1,0 +1,3 @@
+# overrides for k8s_cluster. see kubespray/inventory/sample/group_vars/k8s_cluster/ for more
+cluster_name: "{{ cluster_domain }}"
+kube_network_plugin: calico

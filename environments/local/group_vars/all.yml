@@ -1,39 +1,32 @@
-# --- Environment identity ---
+---  
 environment_name: "lab"
 main_domain: "k8s.local"
 
 cluster_domain: "{{ environment_name }}.{{ main_domain }}"
 control_plane_domain: "cp.{{ cluster_domain }}"
 
-# --- Networking ---
 trusted_networks:
   - 192.168.1.0/24
 
 firewalld_trusted_networks: "{{ trusted_networks }}"
 
-# --- Ingress / URLs ---
 ingress_base_url: "https://{{ cluster_domain }}"
 grafana_base_url: "https://grafana.{{ cluster_domain }}"
 argocd_base_url: "https://argocd.{{ cluster_domain }}"
 
-# --- Kubernetes platform flags ---
 enable_ingress_controller: true
 enable_cert_manager: true
 enable_metrics_server: true
 
-# --- Observability ---
 enable_monitoring: true
 grafana_allowed_networks: "{{ trusted_networks }}"
 
-# --- Storage ---
 enable_nfs_storage: true
 enable_object_storage: false
 
-# --- Backup ---
 enable_backup: true
 backup_provider: "local"   # local | s3 | nfs
 
-# --- Security ---
 enable_network_policies: true
 enable_pod_security_standards: true
 

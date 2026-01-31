@@ -1,0 +1,13 @@
+# Local env
+.venv/
+*.retry
+
+# Secrets (do not commit)
+.vault_pass
+*.vault
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
