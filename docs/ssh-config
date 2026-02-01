@@ -1,0 +1,65 @@
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/git
+  IdentitiesOnly yes
+
+Host k8s-master1 k8s_master1 master1 master1.k8s.local
+  HostName 192.168.1.101
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+
+Host k8s-master2 k8s_master2 master2 master2.k8s.local
+  HostName 192.168.1.102
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+
+Host k8s-master3 k8s_master3 master3 master3.k8s.local
+  HostName 192.168.1.103
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+
+Host k8s-worker1 k8s_worker1 worker1 worker1.k8s.local
+  HostName 192.168.1.201
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+
+Host k8s-worker2 k8s_worker2 worker2 worker2.k8s.local
+  HostName 192.168.1.202
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+
+Host aux1 aux1.node.local
+  HostName 192.168.1.190
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+
+Host db1 db1.node.local
+  HostName 192.168.1.110
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+
+Host db2 db2.node.local
+  HostName 192.168.1.111
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+
+Host db3 db3.node.local
+  HostName 192.168.1.112
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+
+Host stor1 stor1.node.local
+  HostName 192.168.1.151
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+
+Host stor2 stor2.node.local
+  HostName 192.168.1.152
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+
+Host stor3 stor3.node.local
+  HostName 192.168.1.153
+  User user
+  IdentityFile ~/.ssh/id_ed25519
