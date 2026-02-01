@@ -2,61 +2,31 @@
 set -e
 cd "$(dirname "$0")"
 
-OS="$(uname -s)"
 VENV=.venv
-if [[ "$OS" == MINGW* || "$OS" == MSYS* || "$OS" == CYGWIN* ]]; then
-  VENV_BIN=$VENV/Scripts
-else
-  VENV_BIN=$VENV/bin
-fi
+VENV_BIN=$VENV/bin
 
 # make
 if ! command -v make >/dev/null 2>&1; then
-  case "$OS" in
-    Darwin)  command -v brew >/dev/null 2>&1 && brew install make || { echo "Install Homebrew"; exit 1; } ;;
-    Linux)
-      for c in apt-get dnf yum apk zypper; do
-        command -v $c >/dev/null 2>&1 && { sudo $c update 2>/dev/null; sudo $c install -y make; break; } || true
-      done
-      command -v make >/dev/null 2>&1 || { echo "Install make"; exit 1; } ;;
-    MINGW*|MSYS*|CYGWIN*)
-      command -v winget >/dev/null 2>&1 && winget install -e --id GnuWin32.Make || true
-      for d in "/c/Program Files (x86)/GnuWin32/bin" "/c/Program Files/GnuWin32/bin"; do
-        [ -x "$d/make.exe" ] && export PATH="$d:$PATH" && break
-      done
-      command -v make >/dev/null 2>&1 || { echo "make not found"; exit 1; } ;;
-    *) echo "Unsupported: $OS"; exit 1 ;;
-  esac
-fi
-
-[ -f "$VENV_BIN/activate" ] && { echo "Venv exists. Run: ./make cluster"; exit 0; }
-
-# Prefer Python 3.11/3.12 (ruamel.yaml.clib fails to build on 3.13)
-if [[ "$OS" == Linux* ]]; then
-  if command -v apt-get >/dev/null 2>&1; then
-    sudo apt-get update -qq 2>/dev/null || true
-    sudo apt-get install -y build-essential 2>/dev/null || true
-    for py in python3.11 python3.12; do
-      if sudo apt-get install -y "$py" "${py}-venv" "${py}-dev" 2>/dev/null; then
-        export PYTHON=$py
-        break
-      fi
-    done
-    [[ -z "${PYTHON:-}" ]] && { sudo apt-get install -y python3-venv python3-dev 2>/dev/null || true; export PYTHON=python3; }
-  fi
-fi
-if [[ "$OS" == MINGW* || "$OS" == MSYS* || "$OS" == CYGWIN* ]]; then
-  U="${USERNAME:-$USER}"
-  PY=
-  for v in Python312 Python311 Python310; do
-    [ -x "/c/Users/$U/AppData/Local/Programs/Python/$v/python.exe" ] && PY="/c/Users/$U/AppData/Local/Programs/Python/$v/python.exe" && break
+  for c in apt-get dnf yum apk zypper; do
+    command -v $c >/dev/null 2>&1 && { sudo $c update 2>/dev/null; sudo $c install -y make; break; } || true
   done
-  [ -z "$PY" ] && { echo "Install Python: winget install Python.Python.3.12"; exit 1; }
-  "$PY" -m venv "$VENV"
-  "$VENV_BIN/python" -m pip install --upgrade pip
-  "$VENV_BIN/python" -m pip install -r kubespray/requirements.txt
-else
-  make bootstrap
+  command -v make >/dev/null 2>&1 || { echo "Install make"; exit 1; }
 fi
 
-echo "Done. Run: ./make cluster"
+[ -f "$VENV_BIN/activate" ] && { echo "Venv exists. Run: make cluster"; exit 0; }
+
+# Python 3.11/3.12 + build deps (ruamel.yaml.clib fails on 3.13)
+if command -v apt-get >/dev/null 2>&1; then
+  sudo apt-get update -qq 2>/dev/null || true
+  sudo apt-get install -y build-essential 2>/dev/null || true
+  for py in python3.11 python3.12; do
+    if sudo apt-get install -y "$py" "${py}-venv" "${py}-dev" 2>/dev/null; then
+      export PYTHON=$py
+      break
+    fi
+  done
+  [[ -z "${PYTHON:-}" ]] && { sudo apt-get install -y python3-venv python3-dev 2>/dev/null || true; export PYTHON=python3; }
+fi
+
+make bootstrap
+echo "Done. Run: make cluster"

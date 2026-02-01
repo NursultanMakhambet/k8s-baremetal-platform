@@ -3,14 +3,9 @@
 
 ENV ?= local
 VENV := .venv
-# Prefer Python 3.11/3.12 (ruamel.yaml.clib does not build on 3.13)
-ifeq ($(OS),Windows_NT)
-VENV_BIN := $(VENV)/Scripts
-PYTHON ?= python
-else
 VENV_BIN := $(VENV)/bin
+# Prefer Python 3.11/3.12 (ruamel.yaml.clib does not build on 3.13)
 PYTHON ?= $(shell command -v python3.11 2>/dev/null || command -v python3.12 2>/dev/null || command -v python3 2>/dev/null || echo python3)
-endif
 ANSIBLE_PLAYBOOK := $(VENV_BIN)/ansible-playbook
 INVENTORY := environments/$(ENV)/hosts
 ENV_GROUP_VARS := environments/$(ENV)/group_vars/all.yml
@@ -34,7 +29,7 @@ kubespray-pin: ## Checkout tag from kubespray_version in group_vars
 	git add kubespray
 	@echo "git commit -m \"Pin Kubespray $(KUBESPRAY_VERSION)\""
 
-bootstrap: $(VENV_BIN)/activate ## Venv + Kubespray deps + ansible-lint
+bootstrap: kubespray-init $(VENV_BIN)/activate ## Venv + Kubespray deps + ansible-lint
 $(VENV_BIN)/activate:
 	$(PYTHON) -m venv $(VENV)
 	$(VENV_BIN)/pip install --upgrade pip
