@@ -1,3 +1,7 @@
 # overrides for k8s_cluster. see kubespray/inventory/sample/group_vars/k8s_cluster/ for more
 cluster_name: "{{ cluster_domain }}"
 kube_network_plugin: calico
+
+# Allow masters with less than default 1500 MB (e.g. lab VMs)
+minimal_master_memory_mb: 512
+minimal_node_memory_mb: 512
