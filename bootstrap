@@ -13,7 +13,7 @@ if ! command -v make >/dev/null 2>&1; then
   command -v make >/dev/null 2>&1 || { echo "Install make"; exit 1; }
 fi
 
-[ -f "$VENV_BIN/activate" ] && { echo "Venv exists. Run: make cluster"; exit 0; }
+[ -f "$VENV_BIN/activate" ] && [ -x "$VENV_BIN/ansible-playbook" ] && { echo "Venv exists. Run: make cluster"; exit 0; }
 
 # Python 3.11/3.12 + build deps (ruamel.yaml.clib fails on 3.13)
 if command -v apt-get >/dev/null 2>&1; then
