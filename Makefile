@@ -1,4 +1,4 @@
-.PHONY: help bootstrap cluster platform lint clean kubespray-init kubespray-update kubespray-pin grafana-pkg
+.PHONY: help bootstrap cluster platform fix-dns lint clean kubespray-init kubespray-update kubespray-pin grafana-pkg
 .DEFAULT_GOAL := help
 
 ENV ?= local
@@ -38,6 +38,9 @@ $(VENV_BIN)/activate:
 
 cluster: ## Deploy cluster (Kubespray)
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/cluster.yml
+
+fix-dns: ## Set DNS on k8s nodes (run once if nodes can't resolve mirrors)
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/fix-dns.yml
 
 platform: ## Deploy platform (GitOps, ingress, monitoring)
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/platform.yml
