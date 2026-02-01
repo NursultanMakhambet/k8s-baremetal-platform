@@ -1,0 +1,9 @@
+---
+# Prepare nodes before Kubespray. Tags: k8s (firewall), ... (add more in role)
+#   make prepare           # run all
+#   make prepare TAGS=k8s # firewall only
+
+- hosts: k8s
+  become: true
+  roles:
+    - prepare_nodes

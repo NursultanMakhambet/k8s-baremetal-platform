@@ -1,0 +1,10 @@
+---
+# Firewall: ports Kubespray/Kubernetes need between nodes
+prepare_firewall_ports:
+  - port: "2379/tcp"   # etcd client
+  - port: "2380/tcp"   # etcd peer
+  - port: "6443/tcp"   # kube-apiserver
+  - port: "10250/tcp"  # kubelet
+  - port: "10257/tcp"  # kube-controller-manager
+  - port: "10259/tcp"  # kube-scheduler
+  - port: "10256/tcp"  # kube-proxy

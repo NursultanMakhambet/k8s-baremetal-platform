@@ -1,4 +1,4 @@
-.PHONY: help bootstrap cluster platform lint clean kubespray-init kubespray-update kubespray-pin grafana-pkg
+.PHONY: help bootstrap prepare cluster platform lint clean kubespray-init kubespray-update kubespray-pin grafana-pkg
 .DEFAULT_GOAL := help
 
 ENV ?= local
@@ -35,6 +35,9 @@ $(VENV_BIN)/activate:
 	$(VENV_BIN)/pip install --upgrade pip
 	$(VENV_BIN)/pip install -r kubespray/requirements.txt
 	$(VENV_BIN)/pip install 'ansible-lint>=24,<25' 'ansible-core>=2.15,<2.16'
+
+prepare: ## Prepare nodes (firewall etc.). Use TAGS=k8s for firewall only
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/prepare.yml $(if $(TAGS),--tags $(TAGS))
 
 cluster: ## Deploy cluster (Kubespray)
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/cluster.yml

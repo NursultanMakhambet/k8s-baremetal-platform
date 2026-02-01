@@ -1,0 +1,15 @@
+---
+# Prepare nodes before Kubespray. Use --tags to run only parts:
+#   --tags k8s      firewall (etcd/Kubernetes ports)
+#   --tags dns      (add later)
+#   --tags ntp      (add later)
+# No tags = run all.
+
+- name: Include firewall tasks
+  include_tasks: firewall.yml
+  tags: [k8s, firewall]
+
+# Add more includes here with their own tags, e.g.:
+# - name: Include DNS tasks
+#   include_tasks: dns.yml
+#   tags: [dns]
