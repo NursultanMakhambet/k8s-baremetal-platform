@@ -3,12 +3,13 @@
 
 ENV ?= local
 VENV := .venv
+# Prefer Python 3.11/3.12 (ruamel.yaml.clib does not build on 3.13)
 ifeq ($(OS),Windows_NT)
 VENV_BIN := $(VENV)/Scripts
 PYTHON ?= python
 else
 VENV_BIN := $(VENV)/bin
-PYTHON ?= python3
+PYTHON ?= $(shell command -v python3.11 2>/dev/null || command -v python3.12 2>/dev/null || command -v python3 2>/dev/null || echo python3)
 endif
 ANSIBLE_PLAYBOOK := $(VENV_BIN)/ansible-playbook
 INVENTORY := environments/$(ENV)/hosts

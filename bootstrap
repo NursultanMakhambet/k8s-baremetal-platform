@@ -31,9 +31,19 @@ fi
 
 [ -f "$VENV_BIN/activate" ] && { echo "Venv exists. Run: ./make cluster"; exit 0; }
 
-# venv + ansible
+# Prefer Python 3.11/3.12 (ruamel.yaml.clib fails to build on 3.13)
 if [[ "$OS" == Linux* ]]; then
-  command -v apt-get >/dev/null 2>&1 && sudo apt-get install -y python3-venv build-essential python3-dev 2>/dev/null || true
+  if command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get update -qq 2>/dev/null || true
+    sudo apt-get install -y build-essential 2>/dev/null || true
+    for py in python3.11 python3.12; do
+      if sudo apt-get install -y "$py" "${py}-venv" "${py}-dev" 2>/dev/null; then
+        export PYTHON=$py
+        break
+      fi
+    done
+    [[ -z "${PYTHON:-}" ]] && { sudo apt-get install -y python3-venv python3-dev 2>/dev/null || true; export PYTHON=python3; }
+  fi
 fi
 if [[ "$OS" == MINGW* || "$OS" == MSYS* || "$OS" == CYGWIN* ]]; then
   U="${USERNAME:-$USER}"
