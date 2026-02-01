@@ -1,4 +1,8 @@
----  
+---
+# Kubespray: allow small lab VMs (defaults are 1500 MB masters, 1024 MB nodes)
+minimal_master_memory_mb: 512
+minimal_node_memory_mb: 512
+
 environment_name: "lab"
 main_domain: "k8s.local"
 
