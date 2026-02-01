@@ -32,6 +32,9 @@ fi
 [ -f "$VENV_BIN/activate" ] && { echo "Venv exists. Run: ./make cluster"; exit 0; }
 
 # venv + ansible
+if [[ "$OS" == Linux* ]]; then
+  command -v apt-get >/dev/null 2>&1 && sudo apt-get install -y python3-venv 2>/dev/null || true
+fi
 if [[ "$OS" == MINGW* || "$OS" == MSYS* || "$OS" == CYGWIN* ]]; then
   U="${USERNAME:-$USER}"
   PY=
