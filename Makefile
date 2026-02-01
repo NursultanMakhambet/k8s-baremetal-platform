@@ -34,7 +34,7 @@ $(VENV_BIN)/activate:
 	$(PYTHON) -m venv $(VENV)
 	$(VENV_BIN)/pip install --upgrade pip
 	$(VENV_BIN)/pip install -r kubespray/requirements.txt
-	$(VENV_BIN)/pip install 'ansible-lint>=24,<25'
+	$(VENV_BIN)/pip install 'ansible-lint>=24,<25' 'ansible-core>=2.15,<2.16'
 
 cluster: ## Deploy cluster (Kubespray)
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/cluster.yml
