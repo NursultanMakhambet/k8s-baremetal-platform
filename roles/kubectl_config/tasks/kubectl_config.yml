@@ -1,11 +1,11 @@
 ---
-# Read kubeconfig from first master (with become) and write to control host.
-# Uses shell cat on the master (same as: ansible master -m shell -a "sudo cat /root/.kube/config" -b).
+# Read kubeconfig from first master and write to control host.
+# Uses explicit "sudo cat" on the master (same as: ansible master -m shell -a "sudo cat /root/.kube/config" -b).
+# Requires passwordless sudo on the master for the Ansible user, or run with -K.
 
-- name: Read kubeconfig from first master (become to read root-only file)
-  shell: "cat {{ kubectl_config_src }}"
+- name: Read kubeconfig from first master (sudo cat root-only file)
+  shell: "sudo cat {{ kubectl_config_src }}"
   delegate_to: "{{ kubectl_first_master }}"
-  become: true
   register: kubeconfig_content
   run_once: true
   changed_when: false
