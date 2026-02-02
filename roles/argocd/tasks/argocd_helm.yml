@@ -4,7 +4,7 @@
 
 - name: Install Argo CD in argocd namespace (manifest)
   command: >
-    kubectl apply -n argocd -f {{ argocd_install_manifest_url }}
+    kubectl apply --server-side -n argocd -f {{ argocd_install_manifest_url }}
   run_once: true
   when: platform_install_argocd | default(false) | bool
   tags: [argocd]
