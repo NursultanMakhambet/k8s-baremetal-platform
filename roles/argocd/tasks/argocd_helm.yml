@@ -20,6 +20,7 @@
     helm upgrade --install argocd argo/argo-cd
     --namespace argocd
     --create-namespace
+    --no-hooks
   run_once: true
   when: platform_install_argocd | default(false) | bool
   tags: [argocd]
