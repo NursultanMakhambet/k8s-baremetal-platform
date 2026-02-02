@@ -8,3 +8,49 @@
   run_once: true
   when: platform_install_argocd | default(false) | bool
   tags: [argocd]
+
+# Ensure argocd-secret has required keys so pods can start (CreateContainerConfigError fix).
+- name: Check for htpasswd (for Argo CD admin password)
+  command: which htpasswd
+  register: argocd_htpasswd_check
+  failed_when: false
+  changed_when: false
+  run_once: true
+  when: platform_install_argocd | default(false) | bool
+  tags: [argocd]
+
+- name: Set htpasswd available fact
+  set_fact:
+    argocd_admin_password_htpasswd_available: "{{ argocd_htpasswd_check.rc == 0 }}"
+  run_once: true
+  when:
+    - platform_install_argocd | default(false) | bool
+    - argocd_htpasswd_check is defined
+  tags: [argocd]
+
+- name: Ensure argocd-secret has server.secretkey
+  shell: |
+    SECRETKEY=$(openssl rand -base64 32)
+    kubectl patch secret argocd-secret -n argocd --type=merge -p "{\"stringData\":{\"server.secretkey\":\"$SECRETKEY\"}}"
+  run_once: true
+  when: platform_install_argocd | default(false) | bool
+  tags: [argocd]
+
+- name: Ensure argocd-secret has admin password (bcrypt; requires htpasswd)
+  shell: |
+    BCRYPT=$(htpasswd -nbBC 10 admin "{{ argocd_admin_password | default('admin') }}" | tr -d '\n' | sed 's/$2y/$2a/')
+    MTIME=$(date +%FT%T%Z)
+    kubectl patch secret argocd-secret -n argocd --type=merge -p "{\"stringData\":{\"admin.password\":\"$BCRYPT\",\"admin.passwordMtime\":\"$MTIME\"}}"
+  run_once: true
+  when:
+    - platform_install_argocd | default(false) | bool
+    - argocd_admin_password_htpasswd_available | default(false) | bool
+  tags: [argocd]
+
+- name: Restart Argo CD pods to pick up secret
+  shell: |
+    kubectl rollout restart statefulset -n argocd -l app.kubernetes.io/part-of=argocd
+    kubectl rollout restart deployment -n argocd -l app.kubernetes.io/part-of=argocd
+  run_once: true
+  when: platform_install_argocd | default(false) | bool
+  tags: [argocd]

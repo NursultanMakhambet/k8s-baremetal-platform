@@ -1,3 +1,5 @@
 ---
 # Pin to a tag for production, e.g. https://raw.githubusercontent.com/argoproj/argo-cd/v2.12.6/manifests/install.yaml
 argocd_install_manifest_url: "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
+# Initial admin password (set in argocd-secret). Requires htpasswd (apache2-utils / httpd-tools) on control host.
+argocd_admin_password: "admin"
