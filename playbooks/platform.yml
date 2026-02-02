@@ -1,0 +1,11 @@
+---
+# Create platform namespaces and optionally install Argo CD.
+# Run from a host with kubectl and KUBECONFIG set. Creates namespaces; optionally installs Argo CD via Helm.
+
+- hosts: localhost
+  connection: local
+  gather_facts: true
+  roles:
+    - role: platform
+      vars:
+        platform_install_argocd: "{{ platform_install_argocd | default(false) | bool }}"

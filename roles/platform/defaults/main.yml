@@ -1,0 +1,10 @@
+---
+# Namespaces to create for platform/monitoring/aux
+platform_namespaces:
+  - monitoring   # Grafana, VictoriaMetrics, Alertmanager, exporters
+  - argocd      # Argo CD (GitOps)
+  - vault       # HashiCorp Vault if used
+  - platform    # cert-manager, ingress, external-secrets, other aux
+
+# Set to true to install Argo CD via Helm (requires: helm in PATH, kubeconfig)
+platform_install_argocd: false

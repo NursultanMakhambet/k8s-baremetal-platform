@@ -1,5 +1,5 @@
 ---
-# Kubespray: allow small lab VMs (defaults are 1500 MB masters, 1024 MB nodes)
+
 minimal_master_memory_mb: 512
 minimal_node_memory_mb: 512
 
@@ -33,4 +33,7 @@ backup_provider: "local"   # local | s3 | nfs
 
 enable_network_policies: true
 enable_pod_security_standards: true
+
+# Platform (namespaces + optional Argo CD). Set true to install Argo CD via Helm when running make platform.
+# platform_install_argocd: true
 

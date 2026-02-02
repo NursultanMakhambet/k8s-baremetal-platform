@@ -1,6 +1,4 @@
 ---
-# Firewall: open etcd/Kubernetes ports. Tags: k8s, firewall
-# Run: ansible-playbook -i ... playbooks/prepare.yml --tags k8s
 
 - name: Ensure firewalld is installed (RHEL/Rocky)
   package:

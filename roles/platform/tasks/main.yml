@@ -1,0 +1,31 @@
+---
+# Run from a host with kubectl and KUBECONFIG set. Creates namespaces; optionally installs Argo CD.
+
+- name: Create platform namespaces
+  command: "kubectl create namespace {{ item }}"
+  loop: "{{ platform_namespaces }}"
+  register: ns_result
+  failed_when: ns_result.rc != 0 and 'AlreadyExists' not in (ns_result.stderr | default(''))
+  changed_when: ns_result.rc == 0
+  run_once: true
+
+- name: Install Argo CD (Helm)
+  block:
+    - name: Add Argo CD Helm repo
+      command: helm repo add argo https://argoproj.github.io/argo-helm
+      changed_when: true
+      run_once: true
+
+    - name: Update Helm repos
+      command: helm repo update
+      run_once: true
+
+    - name: Install Argo CD in argocd namespace
+      command: >
+        helm upgrade --install argocd argo/argo-cd
+        --namespace argocd
+        --create-namespace
+        --wait
+      run_once: true
+  when: platform_install_argocd | default(false) | bool
+  run_once: true
