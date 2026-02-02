@@ -1,7 +1,11 @@
 ---
 # Path to admin.conf on the first master (Kubespray default).
 kubectl_config_src: /etc/kubernetes/admin.conf
-# Path to kubeconfig on the control host (where you run the playbook).
-kubectl_config_dest: "{{ ansible_env.HOME | default('/tmp') }}/.kube/config"
+# Path to kubeconfig on the control host. Per-env: config-<env_name> so you can keep config-localVM, config-prod, etc.
+kubectl_config_dest: "{{ ansible_env.HOME | default('/tmp') }}/.kube/config-{{ env_name | default('localVM') }}"
 # First master hostname (from inventory). Used to fetch config.
 kubectl_first_master: "{{ groups['kube_control_plane'][0] }}"
+# Where to install kubectl binary (user dir, no sudo). Ensure this is in PATH (e.g. ~/.local/bin).
+kubectl_install_dir: "{{ ansible_env.HOME | default('/tmp') }}/.local/bin"
+# Kubectl version to download (e.g. v1.30.0). Override per env if needed.
+kubectl_version: "v1.30.2"

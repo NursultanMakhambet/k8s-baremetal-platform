@@ -37,7 +37,9 @@ ansible-playbook -i environments/localVM/hosts playbooks/full.yml --tags cluster
 ansible-playbook -i environments/localVM/hosts playbooks/full.yml --tags platform
 ```
 
-Replace `localVM` with your env. Run `make kubectl-config` after the cluster is up to install kubectl on the control host and copy kubeconfig from the first master (SSH to master required). Platform runs on localhost and needs kubectl and KUBECONFIG; for Argo CD install, helm must be in PATH.
+Replace `localVM` with your env. Run `make kubectl-config` after the cluster is up to install kubectl on the control host and copy kubeconfig from the first master (SSH to master required). Kubectl is installed to `~/.local/bin` (no sudo); ensure that dir is in PATH. Platform runs on localhost and needs kubectl and KUBECONFIG; for Argo CD install, helm must be in PATH.
+
+**Multiple envs.** Kubeconfig is saved per env: `~/.kube/config-<ENV>` (e.g. `~/.kube/config-localVM`, `~/.kube/config-prod`). Run `make kubectl-config ENV=prod` to fetch config for that env. Use the one you need: `export KUBECONFIG=~/.kube/config-localVM` or `export KUBECONFIG=~/.kube/config-prod`.
 
 **Tags.**
 
