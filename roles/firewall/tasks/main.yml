@@ -1,0 +1,12 @@
+---
+# Generic firewall role: firewalld + open ports from firewall_ports.
+# Used by k8s and postgres roles (or playbook with vars).
+# Task files: firewall_install, firewall_ports.
+
+- name: Include firewall install tasks
+  include_tasks: firewall_install.yml
+  tags: [firewall]
+
+- name: Include firewall ports tasks
+  include_tasks: firewall_ports.yml
+  tags: [firewall]

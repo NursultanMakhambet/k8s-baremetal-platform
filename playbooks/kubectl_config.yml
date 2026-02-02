@@ -1,0 +1,12 @@
+---
+# Install kubectl on control host and copy kubeconfig from first master.
+# Runs on localhost; fetches from kube_control_plane[0] (SSH required).
+# Tags: kubectl_config.
+
+- hosts: localhost
+  connection: local
+  gather_facts: true
+  become: false
+  roles:
+    - kubectl_config
+  tags: [kubectl_config]

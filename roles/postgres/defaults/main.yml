@@ -1,0 +1,4 @@
+---
+# Ports for Postgres/DB nodes. Override per env if needed.
+postgres_firewall_ports:
+  - port: "5432/tcp"   # PostgreSQL

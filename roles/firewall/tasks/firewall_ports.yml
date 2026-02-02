@@ -1,0 +1,19 @@
+---
+# Firewall: open ports from firewall_ports var; flush handlers.
+
+- name: Open firewall ports
+  firewalld:
+    port: "{{ item.port }}"
+    permanent: true
+    state: enabled
+    immediate: true
+  loop: "{{ firewall_ports }}"
+  when:
+    - ansible_os_family == "RedHat"
+    - firewall_ports | length > 0
+  notify: reload firewalld
+  tags: [firewall]
+
+- name: Flush handlers (firewalld)
+  meta: flush_handlers
+  tags: [firewall]

@@ -1,0 +1,7 @@
+---
+# Postgres/DB node preparation: firewall for Postgres ports.
+# Task files: firewall_postgres.
+
+- name: Include firewall for Postgres
+  include_tasks: firewall_postgres.yml
+  tags: [postgres, firewall]

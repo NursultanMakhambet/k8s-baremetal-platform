@@ -1,0 +1,7 @@
+---
+# K8s node preparation: firewall for Kubernetes/etcd ports.
+# Task files: firewall_k8s.
+
+- name: Include firewall for Kubernetes
+  include_tasks: firewall_k8s.yml
+  tags: [k8s, firewall]

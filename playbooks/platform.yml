@@ -1,12 +1,16 @@
 ---
-# Create platform namespaces and optionally install Argo CD.
-# Run from a host with kubectl and KUBECONFIG set. Creates namespaces; optionally installs Argo CD via Helm.
+# Platform: namespaces + optional Argo CD. Runs on localhost (kubectl, KUBECONFIG, helm).
+# Tags: namespaces, argocd.
 
 - hosts: localhost
   connection: local
   gather_facts: true
   become: false
+  environment:
+    PATH: "{{ ansible_env.PATH | default('/usr/local/bin:/usr/bin:/bin') }}"
+  vars:
+    platform_install_argocd: "{{ platform_install_argocd | default(is_ArgoCD_included | default(false)) | bool }}"
   roles:
-    - role: platform
-      vars:
-        platform_install_argocd: "{{ platform_install_argocd | default(false) | bool }}"
+    - namespaces
+    - argocd
+  tags: [namespaces, argocd]

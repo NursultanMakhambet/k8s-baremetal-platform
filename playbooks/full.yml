@@ -1,0 +1,16 @@
+---
+# One playbook for prepare + cluster + platform. Use --tags to run only part of it.
+#   ansible-playbook -i environments/localVM/hosts playbooks/full.yml
+#   ansible-playbook -i environments/localVM/hosts playbooks/full.yml --tags prepare
+#   ansible-playbook -i environments/localVM/hosts playbooks/full.yml --tags cluster
+#   ansible-playbook -i environments/localVM/hosts playbooks/full.yml --tags platform
+#   ansible-playbook -i environments/localVM/hosts playbooks/full.yml --tags prepare --tags platform
+
+- import_playbook: prepare.yml
+  tags: [prepare]
+
+- import_playbook: cluster.yml
+  tags: [cluster]
+
+- import_playbook: platform.yml
+  tags: [platform]

@@ -1,0 +1,7 @@
+---
+# Path to admin.conf on the first master (Kubespray default).
+kubectl_config_src: /etc/kubernetes/admin.conf
+# Path to kubeconfig on the control host (where you run the playbook).
+kubectl_config_dest: "{{ ansible_env.HOME | default('/tmp') }}/.kube/config"
+# First master hostname (from inventory). Used to fetch config.
+kubectl_first_master: "{{ groups['kube_control_plane'][0] }}"

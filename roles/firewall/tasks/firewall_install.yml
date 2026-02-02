@@ -1,0 +1,19 @@
+---
+# Firewall: install and enable firewalld (RHEL/Rocky).
+
+- name: Ensure firewalld is installed (RHEL/Rocky)
+  package:
+    name: firewalld
+    state: present
+  when: ansible_os_family == "RedHat"
+  ignore_errors: true
+  tags: [firewall]
+
+- name: Start and enable firewalld
+  service:
+    name: firewalld
+    state: started
+    enabled: true
+  when: ansible_os_family == "RedHat"
+  ignore_errors: true
+  tags: [firewall]

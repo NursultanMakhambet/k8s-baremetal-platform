@@ -1,0 +1,28 @@
+---
+# Fetch admin.conf from first master and save as kubeconfig on control host.
+# Requires SSH from control host to first master (delegate_to).
+
+- name: Fetch kubeconfig from first master
+  fetch:
+    src: "{{ kubectl_config_src }}"
+    dest: "/tmp/kubectl_admin.conf"
+    flat: true
+  delegate_to: "{{ kubectl_first_master }}"
+  run_once: true
+  tags: [kubectl_config]
+
+- name: Copy kubeconfig to destination on control host
+  copy:
+    src: "/tmp/kubectl_admin.conf"
+    dest: "{{ kubectl_config_dest }}"
+    mode: "0600"
+    remote_src: true
+  run_once: true
+  tags: [kubectl_config]
+
+- name: Remove temporary kubeconfig
+  file:
+    path: "/tmp/kubectl_admin.conf"
+    state: absent
+  run_once: true
+  tags: [kubectl_config]

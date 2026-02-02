@@ -1,4 +1,10 @@
 ---
+# Feature flags: drive what gets included (cluster, Argo CD, Helm, monitoring, Vault). Override per env.
+is_k8s_cluster: true
+is_ArgoCD_included: true   # install Argo CD when running platform playbook
+is_Helm_included: true
+is_Monitoring_included: true
+is_Vault_included: true
 
 minimal_master_memory_mb: 512
 minimal_node_memory_mb: 512
@@ -34,6 +40,6 @@ backup_provider: "local"   # local | s3 | nfs
 enable_network_policies: true
 enable_pod_security_standards: true
 
-# Platform (namespaces + optional Argo CD). Set true to install Argo CD via Helm when running make platform.
+# Argo CD install: use is_ArgoCD_included above, or override here.
 # platform_install_argocd: true
 

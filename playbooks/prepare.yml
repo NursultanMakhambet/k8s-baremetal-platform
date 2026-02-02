@@ -1,8 +1,17 @@
 ---
-# Prepare nodes (firewall etc.). Tags: k8s (Kubernetes ports), postgres (Postgres/DB ports), firewall (both).
-# Hosts: k8s and db. Use TAGS to run only selected parts.
+# Prepare nodes: firewall for k8s and postgres. Tags: k8s, postgres, firewall.
+#   --tags k8s     → k8s role only (Kubernetes ports on group k8s)
+#   --tags postgres → postgres role only (Postgres ports on group db)
+#   --tags firewall → both (or no tags = both)
 
-- hosts: k8s,db
+- hosts: k8s
   become: true
   roles:
-    - prepare_nodes
+    - k8s
+  tags: [k8s, firewall]
+
+- hosts: db
+  become: true
+  roles:
+    - postgres
+  tags: [postgres, firewall]

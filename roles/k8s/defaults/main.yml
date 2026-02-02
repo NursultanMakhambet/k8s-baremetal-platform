@@ -1,6 +1,6 @@
 ---
-# Firewall: ports Kubespray/Kubernetes need between nodes (tag: k8s)
-prepare_firewall_ports:
+# Ports Kubespray/Kubernetes need between nodes. Override per env if needed.
+k8s_firewall_ports:
   - port: "2379/tcp"   # etcd client
   - port: "2380/tcp"   # etcd peer
   - port: "6443/tcp"   # kube-apiserver
@@ -8,7 +8,3 @@ prepare_firewall_ports:
   - port: "10257/tcp"  # kube-controller-manager
   - port: "10259/tcp"  # kube-scheduler
   - port: "10256/tcp"  # kube-proxy
-
-# Firewall: ports for Postgres / DB nodes (tag: postgres). Override per env if needed.
-prepare_firewall_ports_postgres:
-  - port: "5432/tcp"   # PostgreSQL

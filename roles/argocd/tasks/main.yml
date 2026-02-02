@@ -1,0 +1,7 @@
+---
+# Install Argo CD via Helm. Run on localhost with kubectl, helm, KUBECONFIG set.
+# Task files: argocd_helm.
+
+- name: Include Argo CD Helm install tasks
+  include_tasks: argocd_helm.yml
+  tags: [argocd]

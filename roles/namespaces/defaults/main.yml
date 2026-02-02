@@ -1,0 +1,7 @@
+---
+# Namespaces to create (monitoring, argocd, vault, platform). Override per env in group_vars (e.g. environments/<env>/group_vars/all.yml).
+platform_namespaces:
+  - monitoring
+  - argocd
+  - vault
+  - platform

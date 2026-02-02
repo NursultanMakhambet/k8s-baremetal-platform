@@ -1,0 +1,4 @@
+---
+# Ports to open (list of dicts with 'port' key, e.g. {"port": "2379/tcp"}).
+# Set by playbook or by k8s/postgres roles.
+firewall_ports: []

@@ -1,0 +1,7 @@
+---
+# Create platform namespaces (monitoring, argocd, vault, platform). Override per env in group_vars.
+# Task files: namespaces_create.
+
+- name: Include namespaces create tasks
+  include_tasks: namespaces_create.yml
+  tags: [namespaces]

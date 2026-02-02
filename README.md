@@ -1,27 +1,61 @@
 # k8s-baremetal-platform
 
-Bare-metal Kubernetes with Kubespray. This repo holds inventory and overrides; Kubespray is included as a submodule.
+Bare-metal Kubernetes with Kubespray. This repo holds inventory and overrides; Kubespray is a submodule. Use it to prepare nodes (firewall), deploy the cluster, and bootstrap platform (namespaces, optional Argo CD). Deploy monitoring, Vault, and other apps via Argo CD or Helm from your machine.
+Prefer kubectl + kubeconfig on the machine where you run Ansible; then run platform and helm from there.
 
-## Layout
+**Prep (short).**  
+- **kubectl on your machine** — Your machine is a client, not another master. Install kubectl and put a kubeconfig there (e.g. copy `admin.conf` from a master). Then you can run platform playbook and helm from that machine.  
+- **Ansible** — One-time bootstrap: prepare nodes, cluster, namespaces, optional Argo CD.  
+- **Argo CD / Helm** — Use them for day-to-day app deployments (monitoring, Vault, etc.) from Git or from your machine.
 
-- **environments/** — One directory per environment (default `localVM`, or `dev`, `prod`, etc.). Each has `hosts` (inventory) and `group_vars/`.
-- **kubespray/** — Submodule. Do not edit; override behaviour via environment group_vars.
-- **playbooks/** — `cluster.yml` runs Kubespray; `platform.yml` creates platform namespaces and can install Argo CD; `prepare.yml` prepares nodes (e.g. firewall).
+**Layout.**  
+- **environments/** — One per env (default `localVM`). Each has `hosts` and `group_vars/`.  
+- **playbooks/** — `prepare.yml`, `cluster.yml` (Kubespray), `platform.yml`, `kubectl_config.yml`, `full.yml` (all three; use tags to run only part).  
+- **roles/** — Separated by purpose (see Role structure below).
 
-Kubespray expects groups such as `k8s_cluster`, `kube_control_plane`, `kube_node`, `etcd`. Map your inventory groups (e.g. `k8s_master`, `k8s_worker`) in `hosts` accordingly.
+---
 
-## Setup (Linux)
+## How to run
+
+**Make (default env `localVM`):**
 
 ```bash
-git clone --recurse-submodules <repo-url>
-./bootstrap
-make cluster
+./bootstrap   # once: venv + deps
+make prepare [ENV=localVM] [TAGS=k8s|postgres|firewall]
+make cluster  [ENV=localVM]
+make kubectl-config [ENV=localVM]   # after cluster: install kubectl and copy kubeconfig from first master
+make platform [ENV=localVM] [TAGS=namespaces|argocd] [EXTRA_ARGS="-e platform_install_argocd=true"]
+make full     [ENV=localVM] [TAGS=prepare|cluster|platform] [EXTRA_ARGS="..."]
 ```
 
-You need Python 3.11 or 3.12 and SSH access to all inventory hosts. Ensure your inventory hostnames or IPs are reachable (e.g. via `~/.ssh/config` or your network).
+**One playbook (full stack with tags):**
 
-Tune Kubespray via `environments/<env>/group_vars/`. Pin the Kubespray version with `kubespray_version` in group_vars, then run `make kubespray-pin` and commit.
+```bash
+ansible-playbook -i environments/localVM/hosts playbooks/full.yml
+ansible-playbook -i environments/localVM/hosts playbooks/full.yml --tags prepare
+ansible-playbook -i environments/localVM/hosts playbooks/full.yml --tags cluster
+ansible-playbook -i environments/localVM/hosts playbooks/full.yml --tags platform
+```
 
-## After the cluster is up
+Replace `localVM` with your env. Run `make kubectl-config` after the cluster is up to install kubectl on the control host and copy kubeconfig from the first master (SSH to master required). Platform runs on localhost and needs kubectl and KUBECONFIG; for Argo CD install, helm must be in PATH.
 
-Run `make platform` to create namespaces (monitoring, argocd, vault, platform). See **docs/platform-namespaces.md** for namespaces and Argo CD, and **docs/runbook.md** for how to run everything via make or ansible-playbook (env, tags, full stack).
+**Tags.**
+
+| Playbook / full | Tag | What runs |
+|-----------------|-----|-----------|
+| prepare | `k8s` | Firewall: Kubernetes ports on hosts in group `k8s`. |
+| prepare | `postgres` | Firewall: Postgres ports on hosts in group `db`. |
+| prepare | `firewall` | Both. |
+| full | `prepare` | prepare.yml only. |
+| full | `cluster` | cluster.yml (Kubespray) only. |
+| full | `platform` | platform.yml only (namespaces, optional Argo CD). |
+| kubectl_config | `kubectl_config` | Install kubectl and copy kubeconfig from first master. |
+
+No tags = run everything in that playbook.
+
+---
+
+**Docs.**  
+- **docs/platform-namespaces.md** — Namespace table.  
+- **docs/ansible-playbooks.md** — How to use playbooks, how to add a new role.  
+- **docs/ansible-tags.md** — Tags layout, how to add tags.

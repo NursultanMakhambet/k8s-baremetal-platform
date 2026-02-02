@@ -1,0 +1,11 @@
+---
+# Create platform namespaces via kubectl. Run on localhost with KUBECONFIG set.
+
+- name: Create platform namespaces
+  shell: "kubectl create namespace {{ item }}"
+  loop: "{{ platform_namespaces }}"
+  register: ns_result
+  failed_when: ns_result.rc != 0 and 'AlreadyExists' not in (ns_result.stderr | default(''))
+  changed_when: ns_result.rc == 0
+  run_once: true
+  tags: [namespaces]

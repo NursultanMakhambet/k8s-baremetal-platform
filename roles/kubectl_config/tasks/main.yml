@@ -1,0 +1,12 @@
+---
+# Install kubectl on control host and copy kubeconfig from first master.
+# Task files: kubectl_install, kubectl_config.
+# Run on localhost; fetch uses delegate_to to first master (SSH required).
+
+- name: Include kubectl install tasks
+  include_tasks: kubectl_install.yml
+  tags: [kubectl_config]
+
+- name: Include kubectl config copy tasks
+  include_tasks: kubectl_config.yml
+  tags: [kubectl_config]

@@ -1,0 +1,9 @@
+---
+# K8s: apply firewall role with Kubernetes/etcd ports.
+
+- name: Apply firewall for Kubernetes
+  include_role:
+    name: firewall
+    vars:
+      firewall_ports: "{{ k8s_firewall_ports }}"
+  tags: [k8s, firewall]
