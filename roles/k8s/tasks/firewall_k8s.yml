@@ -1,9 +1,21 @@
 ---
-# K8s: apply firewall role with Kubernetes/etcd ports.
+# K8s: apply firewall role with Kubernetes/etcd ports + allow pod->service so pods can reach API server.
 
 - name: Apply firewall for Kubernetes
   include_role:
     name: firewall
     vars:
       firewall_ports: "{{ k8s_firewall_ports }}"
+  tags: [k8s, firewall]
+
+- name: Allow pod network to service CIDR (so pods can reach API server at 10.233.0.1)
+  firewalld:
+    rich_rule: 'rule family="ipv4" source address="{{ kube_pods_subnet }}" destination address="{{ kube_service_addresses }}" accept'
+    permanent: true
+    state: enabled
+    immediate: true
+  when:
+    - ansible_os_family == "RedHat"
+    - k8s_firewall_pod_to_service | default(true) | bool
+  notify: reload firewalld
   tags: [k8s, firewall]
