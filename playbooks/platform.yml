@@ -16,5 +16,7 @@
     KUBECONFIG: "{{ controlhost_kubeconfig }}"
   roles:
     - namespaces
+    - role: ansible_controlhost
+      tags: [controlhost, argocd]   # ensures kubectl + helm in ~/.local/bin before Argo CD
     - argocd
   tags: [namespaces, argocd]
