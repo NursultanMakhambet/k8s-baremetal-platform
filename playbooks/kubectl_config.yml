@@ -3,6 +3,7 @@
 # Two plays: (1) localhost = install kubectl; (2) first master = read config; (3) localhost = write config.
 # delegate_to from a localhost play runs on localhost, so we use a separate play that runs ON the master.
 # Tags: kubectl_config.
+# Override kubectl_config_src in group_vars if your master uses a different path.
 
 - hosts: localhost
   connection: local
@@ -20,7 +21,8 @@
   gather_facts: false
   vars:
     env_name: "{{ env_name | default(env | default('localVM')) }}"
-    kubectl_config_src: "{{ kubectl_config_src | default('/root/.kube/config') }}"
+    # Path on master; override in group_vars if different (e.g. /etc/kubernetes/admin.conf)
+    kubectl_config_src: /root/.kube/config
   tasks:
     - name: Read kubeconfig from first master (runs on master)
       shell: "sudo cat {{ kubectl_config_src }}"
