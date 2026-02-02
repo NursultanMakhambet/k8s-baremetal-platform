@@ -1,14 +1,31 @@
 ---
-# Fetch admin.conf from first master and save as kubeconfig on control host.
-# Requires SSH from control host to first master (delegate_to).
+# Copy kubeconfig from first master to control host.
+# Step 1: on master, copy root-only config to /tmp (with become). Step 2: fetch as user (no become).
 
-- name: Fetch kubeconfig from first master
-  fetch:
+- name: Copy kubeconfig to readable path on first master (become to read root-only file)
+  copy:
     src: "{{ kubectl_config_src }}"
+    dest: "/tmp/kubeconfig_fetch"
+    remote_src: true
+  delegate_to: "{{ kubectl_first_master }}"
+  become: true
+  run_once: true
+  tags: [kubectl_config]
+
+- name: Fetch kubeconfig from first master (as user, no become)
+  fetch:
+    src: "/tmp/kubeconfig_fetch"
     dest: "/tmp/kubectl_admin.conf"
     flat: true
   delegate_to: "{{ kubectl_first_master }}"
-  become: true
+  run_once: true
+  tags: [kubectl_config]
+
+- name: Remove temp kubeconfig on first master
+  file:
+    path: "/tmp/kubeconfig_fetch"
+    state: absent
+  delegate_to: "{{ kubectl_first_master }}"
   run_once: true
   tags: [kubectl_config]
 
@@ -21,7 +38,7 @@
   run_once: true
   tags: [kubectl_config]
 
-- name: Remove temporary kubeconfig
+- name: Remove temporary kubeconfig on control host
   file:
     path: "/tmp/kubectl_admin.conf"
     state: absent
