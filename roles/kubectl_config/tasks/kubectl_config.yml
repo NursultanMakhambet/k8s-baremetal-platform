@@ -1,46 +1,20 @@
 ---
-# Copy kubeconfig from first master to control host.
-# Step 1: on master, copy root-only config to /tmp (with become). Step 2: fetch as user (no become).
+# Read kubeconfig from first master (with become) and write to control host.
+# Uses slurp on the master so path /root/.kube/config is read as root; no temp files on master.
 
-- name: Copy kubeconfig to readable path on first master (become to read root-only file)
-  copy:
+- name: Read kubeconfig from first master (become to read root-only file)
+  slurp:
     src: "{{ kubectl_config_src }}"
-    dest: "/tmp/kubeconfig_fetch"
-    remote_src: true
   delegate_to: "{{ kubectl_first_master }}"
   become: true
+  register: kubeconfig_slurp
   run_once: true
   tags: [kubectl_config]
 
-- name: Fetch kubeconfig from first master (as user, no become)
-  fetch:
-    src: "/tmp/kubeconfig_fetch"
-    dest: "/tmp/kubectl_admin.conf"
-    flat: true
-  delegate_to: "{{ kubectl_first_master }}"
-  run_once: true
-  tags: [kubectl_config]
-
-- name: Remove temp kubeconfig on first master
-  file:
-    path: "/tmp/kubeconfig_fetch"
-    state: absent
-  delegate_to: "{{ kubectl_first_master }}"
-  run_once: true
-  tags: [kubectl_config]
-
-- name: Copy kubeconfig to destination on control host
+- name: Write kubeconfig to control host
   copy:
-    src: "/tmp/kubectl_admin.conf"
+    content: "{{ kubeconfig_slurp.content | b64decode }}"
     dest: "{{ kubectl_config_dest }}"
     mode: "0600"
-    remote_src: true
-  run_once: true
-  tags: [kubectl_config]
-
-- name: Remove temporary kubeconfig on control host
-  file:
-    path: "/tmp/kubectl_admin.conf"
-    state: absent
   run_once: true
   tags: [kubectl_config]
