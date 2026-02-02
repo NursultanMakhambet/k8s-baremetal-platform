@@ -8,6 +8,7 @@
     dest: "/tmp/kubectl_admin.conf"
     flat: true
   delegate_to: "{{ kubectl_first_master }}"
+  become: true
   run_once: true
   tags: [kubectl_config]
 
