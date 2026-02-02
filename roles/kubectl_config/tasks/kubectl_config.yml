@@ -1,19 +1,19 @@
 ---
 # Read kubeconfig from first master (with become) and write to control host.
-# Uses slurp on the master so path /root/.kube/config is read as root; no temp files on master.
+# Uses shell cat on the master (same as: ansible master -m shell -a "sudo cat /root/.kube/config" -b).
 
 - name: Read kubeconfig from first master (become to read root-only file)
-  slurp:
-    src: "{{ kubectl_config_src }}"
+  shell: "cat {{ kubectl_config_src }}"
   delegate_to: "{{ kubectl_first_master }}"
   become: true
-  register: kubeconfig_slurp
+  register: kubeconfig_content
   run_once: true
+  changed_when: false
   tags: [kubectl_config]
 
 - name: Write kubeconfig to control host
   copy:
-    content: "{{ kubeconfig_slurp.content | b64decode }}"
+    content: "{{ kubeconfig_content.stdout }}"
     dest: "{{ kubectl_config_dest }}"
     mode: "0600"
   run_once: true
