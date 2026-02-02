@@ -29,17 +29,19 @@
       run_once: true
       tags: [kubectl_config]
 
-# Write kubeconfig on control host using content from first master.
+# Write kubeconfig on control host; rewrite server URL so control host reaches API (not 127.0.0.1).
 - hosts: controlhost
   become: false
   gather_facts: true
   vars:
     env_name: "{{ env_name | default(env | default('localVM')) }}"
     kubectl_config_dest: "{{ ansible_env.HOME }}/.kube/config-{{ env_name }}"
+    first_master: "{{ hostvars[groups['kube_control_plane'][0]] }}"
+    api_server_url: "https://{{ first_master['ansible_host'] | default(groups['kube_control_plane'][0]) }}:{{ kubectl_config_apiserver_port | default(6443) }}"
   tasks:
-    - name: Write kubeconfig to control host
+    - name: Write kubeconfig to control host (server URL set for control host)
       copy:
-        content: "{{ hostvars[groups['kube_control_plane'][0]]['kubeconfig_content']['stdout'] }}"
+        content: "{{ hostvars[groups['kube_control_plane'][0]]['kubeconfig_content']['stdout'] | regex_replace('server:\\s*https://[^\\n]+', 'server: ' ~ api_server_url) }}"
         dest: "{{ kubectl_config_dest }}"
         mode: "0600"
       when: hostvars[groups['kube_control_plane'][0]]['kubeconfig_content'] is defined
