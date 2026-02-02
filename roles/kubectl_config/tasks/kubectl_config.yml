@@ -1,10 +1,24 @@
 ---
 # Read kubeconfig from first master and write to control host.
-# Uses explicit "sudo cat" on the master (same as: ansible master -m shell -a "sudo cat /root/.kube/config" -b).
 # Requires passwordless sudo on the master for the Ansible user, or run with -K.
+# Note: delegate_to runs the task on the master; vars (e.g. kubectl_config_src) are from the play.
+
+- name: Debug – where we run and what exists on first master
+  shell: "hostname -f; whoami; sudo whoami; sudo ls -la /root/.kube/ 2>&1; echo '---'; sudo test -r {{ kubectl_config_src }} && echo 'FILE_EXISTS' || echo 'FILE_MISSING'"
+  delegate_to: "{{ kubectl_first_master }}"
+  register: kubectl_debug
+  run_once: true
+  changed_when: false
+  tags: [kubectl_config]
+
+- name: Debug – show result (remove this block once working)
+  debug:
+    msg: "{{ kubectl_debug.stdout_lines }}"
+  run_once: true
+  tags: [kubectl_config]
 
 - name: Read kubeconfig from first master (sudo cat root-only file)
-  shell: "sudo cat {{ kubectl_config_src }}"
+  shell: "sudo bash -c 'cat {{ kubectl_config_src }}'"
   delegate_to: "{{ kubectl_first_master }}"
   register: kubeconfig_content
   run_once: true
