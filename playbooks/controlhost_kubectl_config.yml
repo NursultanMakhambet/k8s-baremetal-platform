@@ -11,7 +11,7 @@
   vars:
     env_name: "{{ env_name | default(env | default('localVM')) }}"
   roles:
-    - ansible_host_kubectl_config
+    - ansible_controlhost
   tags: [kubectl_config]
 
 # Read kubeconfig ON the first master (no delegate_to).

@@ -5,3 +5,6 @@ kubectl_config_dest: "{{ ansible_env.HOME | default('/tmp') }}/.kube/config-{{ e
 kubectl_first_master: "{{ groups['kube_control_plane'][0] }}"
 kubectl_install_dir: "{{ ansible_env.HOME | default('/tmp') }}/.local/bin"
 kubectl_version: "v1.30.2"
+helm_version: "v3.16.3"
+helm_tarball_path: "{{ ansible_env.HOME | default('/tmp') }}/.cache/helm-{{ helm_version }}-linux-amd64.tar.gz"
+helm_extract_dir: "{{ ansible_env.HOME | default('/tmp') }}/.cache/helm-extract-{{ helm_version }}"

@@ -3,3 +3,7 @@
 - name: Include kubectl install tasks
   include_tasks: kubectl_install.yml
   tags: [kubectl_config, controlhost_kubectl_install]
+
+- name: Include Helm install tasks
+  include_tasks: helm_install.yml
+  tags: [kubectl_config, controlhost_helm_install]
