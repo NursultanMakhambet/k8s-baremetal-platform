@@ -7,8 +7,8 @@
   become: false
   vars:
     env_name: "{{ env_name | default(env | default('localVM')) }}"
-    _argocd_install_default: "{{ is_ArgoCD_included | default(false) | bool }}"
-    platform_install_argocd: "{{ platform_install_argocd | default(_argocd_install_default) | bool }}"
+    # From group_vars is_ArgoCD_included; override with -e platform_install_argocd=false
+    platform_install_argocd: "{{ is_ArgoCD_included | default(false) | bool }}"
     controlhost_path: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH | default('/usr/local/bin:/usr/bin:/bin') }}"
     controlhost_kubeconfig: "{{ ansible_env.HOME }}/.kube/config-{{ env_name }}"
   environment:
