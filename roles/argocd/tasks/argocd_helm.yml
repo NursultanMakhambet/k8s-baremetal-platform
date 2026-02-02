@@ -47,13 +47,24 @@
     - argocd_admin_password_htpasswd_available | default(false) | bool
   tags: [argocd]
 
-# Pre-create argocd-redis secret so Redis init container (secret-init) does not fail with exit 20.
+# Pre-create argocd-redis secret so Redis main container has REDIS_PASSWORD.
 - name: Ensure argocd-redis secret has auth key
   shell: |
     kubectl create secret generic argocd-redis -n argocd --from-literal=auth=$(openssl rand -base64 32) --dry-run=client -o yaml | kubectl apply -f -
   run_once: true
   when: platform_install_argocd | default(false) | bool
   tags: [argocd]
+
+# Remove Redis init container when pods cannot reach API (e.g. "no route to host"). Secret is pre-created above.
+- name: Remove argocd-redis init container (workaround for API unreachable from pod)
+  shell: |
+    kubectl patch deployment argocd-redis -n argocd --type=json -p='[{"op": "replace", "path": "/spec/template/spec/initContainers", "value": []}]'
+  run_once: true
+  when: platform_install_argocd | default(false) | bool
+  tags: [argocd]
+  register: argocd_redis_patch
+  failed_when: false
+  changed_when: argocd_redis_patch.rc == 0
 
 - name: Restart Argo CD pods to pick up secret
   shell: |
