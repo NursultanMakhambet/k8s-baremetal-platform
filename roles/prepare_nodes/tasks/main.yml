@@ -1,5 +1,9 @@
 ---
 
-- name: Include firewall tasks
+- name: Include firewall tasks for Kubernetes nodes
   include_tasks: firewall.yml
   tags: [k8s, firewall]
+
+- name: Include firewall tasks for Postgres/DB nodes
+  include_tasks: firewall_postgres.yml
+  tags: [postgres, firewall]

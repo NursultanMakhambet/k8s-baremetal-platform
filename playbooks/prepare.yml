@@ -1,9 +1,8 @@
 ---
-# Prepare nodes before Kubespray. Tags: k8s (firewall), ... (add more in role)
-#   make prepare           # run all
-#   make prepare TAGS=k8s # firewall only
+# Prepare nodes (firewall etc.). Tags: k8s (Kubernetes ports), postgres (Postgres/DB ports), firewall (both).
+# Hosts: k8s and db. Use TAGS to run only selected parts.
 
-- hosts: k8s
+- hosts: k8s,db
   become: true
   roles:
     - prepare_nodes

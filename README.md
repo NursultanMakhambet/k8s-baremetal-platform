@@ -24,4 +24,4 @@ Tune Kubespray via `environments/<env>/group_vars/`. Pin the Kubespray version w
 
 ## After the cluster is up
 
-Run `make platform` to create namespaces (monitoring, argocd, vault, platform). See **docs/platform-namespaces.md** for the runbook and optional Argo CD install.
+Run `make platform` to create namespaces (monitoring, argocd, vault, platform). See **docs/platform-namespaces.md** for namespaces and Argo CD, and **docs/runbook.md** for how to run everything via make or ansible-playbook (env, tags, full stack).

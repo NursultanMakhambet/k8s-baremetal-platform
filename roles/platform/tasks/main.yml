@@ -1,5 +1,5 @@
 ---
-# Run from a host with kubectl and KUBECONFIG set. Creates namespaces; optionally installs Argo CD.
+# Run from a host with kubectl and KUBECONFIG set. Tags: namespaces, argocd.
 
 - name: Create platform namespaces
   command: "kubectl create namespace {{ item }}"
@@ -8,6 +8,7 @@
   failed_when: ns_result.rc != 0 and 'AlreadyExists' not in (ns_result.stderr | default(''))
   changed_when: ns_result.rc == 0
   run_once: true
+  tags: [namespaces]
 
 - name: Install Argo CD (Helm)
   block:
@@ -29,3 +30,4 @@
       run_once: true
   when: platform_install_argocd | default(false) | bool
   run_once: true
+  tags: [argocd]

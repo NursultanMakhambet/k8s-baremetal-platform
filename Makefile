@@ -36,14 +36,19 @@ $(VENV_BIN)/activate:
 	$(VENV_BIN)/pip install -r kubespray/requirements.txt
 	$(VENV_BIN)/pip install 'ansible-lint>=24,<25' 'ansible-core>=2.15,<2.16'
 
-prepare: ## Prepare nodes (firewall etc.). Use TAGS=k8s for firewall only
+prepare: ## Prepare nodes (firewall etc.). TAGS=k8s|postgres|firewall. ENV=local|prod|...
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/prepare.yml $(if $(TAGS),--tags $(TAGS))
 
-cluster: ## Deploy cluster (Kubespray)
+cluster: ## Deploy cluster (Kubespray). ENV=local|prod|...
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/cluster.yml
 
-platform: ## Deploy platform (GitOps, ingress, monitoring)
-	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/platform.yml
+platform: ## Create namespaces, optionally Argo CD. TAGS=namespaces|argocd. Use EXTRA_ARGS for -e vars.
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/platform.yml $(if $(TAGS),--tags $(TAGS)) $(EXTRA_ARGS)
+
+full: ## Full stack: prepare + cluster + platform (optional TAGS for prepare, EXTRA_ARGS for platform)
+	$(MAKE) prepare $(if $(TAGS),TAGS=$(TAGS))
+	$(MAKE) cluster
+	$(MAKE) platform $(if $(EXTRA_ARGS),EXTRA_ARGS='$(EXTRA_ARGS)')
 
 lint: ## ansible-lint
 	$(VENV_BIN)/ansible-lint playbooks
