@@ -4,6 +4,6 @@
 - name: Apply firewall for Postgres
   include_role:
     name: firewall
-    vars:
-      firewall_ports: "{{ postgres_firewall_ports }}"
+  vars:
+    firewall_ports: "{{ postgres_firewall_ports }}"
   tags: [postgres, firewall]

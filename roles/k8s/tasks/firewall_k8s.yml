@@ -4,8 +4,8 @@
 - name: Apply firewall for Kubernetes
   include_role:
     name: firewall
-    vars:
-      firewall_ports: "{{ k8s_firewall_ports }}"
+  vars:
+    firewall_ports: "{{ k8s_firewall_ports }}"
   tags: [k8s, firewall]
 
 - name: Allow pod network to service CIDR (so pods can reach API server at 10.233.0.1)
