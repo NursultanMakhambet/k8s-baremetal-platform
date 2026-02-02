@@ -21,3 +21,19 @@
     state: directory
     mode: "0755"
   tags: [controlhost_kubectl_install]
+
+- name: Ensure ~/.local/bin is in PATH for login shells
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: true
+    state: present
+  tags: [controlhost_kubectl_install]
+
+- name: Ensure KUBECONFIG is set for login shells
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export KUBECONFIG="$HOME/.kube/config"'
+    create: true
+    state: present
+  tags: [controlhost_kubectl_install]

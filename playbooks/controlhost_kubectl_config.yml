@@ -44,3 +44,29 @@
         mode: "0600"
       when: hostvars[groups['kube_control_plane'][0]]['kubeconfig_content'] is defined
       tags: [kubectl_config]
+
+    - name: Stat default kubeconfig
+      stat:
+        path: "{{ ansible_env.HOME }}/.kube/config"
+      register: kubeconfig_default_stat
+      when: hostvars[groups['kube_control_plane'][0]]['kubeconfig_content'] is defined
+      tags: [kubectl_config]
+
+    - name: Remove existing default kubeconfig if not symlink to this env
+      file:
+        path: "{{ ansible_env.HOME }}/.kube/config"
+        state: absent
+      when:
+        - hostvars[groups['kube_control_plane'][0]]['kubeconfig_content'] is defined
+        - kubeconfig_default_stat is defined
+        - kubeconfig_default_stat.stat.exists
+        - not (kubeconfig_default_stat.stat.islnk and ('config-' ~ env_name in kubeconfig_default_stat.stat.lnk_source))
+      tags: [kubectl_config]
+
+    - name: Set default kubeconfig symlink for this env
+      file:
+        src: "config-{{ env_name }}"
+        dest: "{{ ansible_env.HOME }}/.kube/config"
+        state: link
+      when: hostvars[groups['kube_control_plane'][0]]['kubeconfig_content'] is defined
+      tags: [kubectl_config]

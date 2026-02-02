@@ -1,14 +1,18 @@
 ---
 # Platform: namespaces + optional Argo CD. Runs on control host (kubectl, KUBECONFIG, helm).
-# Tags: namespaces, argocd. Inventory must define group "controlhost".
+# Tags: namespaces, argocd. Make sets env_name from ENV; PATH and KUBECONFIG are set so kubectl/helm work.
 
 - hosts: controlhost
   gather_facts: true
   become: false
-  environment:
-    PATH: "{{ ansible_env.PATH | default('/usr/local/bin:/usr/bin:/bin') }}"
   vars:
+    env_name: "{{ env_name | default(env | default('localVM')) }}"
     platform_install_argocd: "{{ platform_install_argocd | default(is_ArgoCD_included | default(false)) | bool }}"
+    controlhost_path: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH | default('/usr/local/bin:/usr/bin:/bin') }}"
+    controlhost_kubeconfig: "{{ ansible_env.HOME }}/.kube/config-{{ env_name }}"
+  environment:
+    PATH: "{{ controlhost_path }}"
+    KUBECONFIG: "{{ controlhost_kubeconfig }}"
   roles:
     - namespaces
     - argocd
