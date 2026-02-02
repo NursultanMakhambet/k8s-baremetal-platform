@@ -1,7 +1,7 @@
 ---
 # Install kubectl on control host and copy kubeconfig from first master.
-# Runs on localhost; fetches from kube_control_plane[0] (SSH required).
-# Kubeconfig is saved per env: ~/.kube/config-<env_name>. Set KUBECONFIG to use it.
+# Two plays: (1) localhost = install kubectl; (2) first master = read config; (3) localhost = write config.
+# delegate_to from a localhost play runs on localhost, so we use a separate play that runs ON the master.
 # Tags: kubectl_config.
 
 - hosts: localhost
@@ -13,3 +13,33 @@
   roles:
     - kubectl_config
   tags: [kubectl_config]
+
+# Read kubeconfig ON the first master (no delegate_to).
+- hosts: kube_control_plane
+  become: true
+  gather_facts: false
+  vars:
+    env_name: "{{ env_name | default(env | default('localVM')) }}"
+    kubectl_config_src: "{{ kubectl_config_src | default('/root/.kube/config') }}"
+  tasks:
+    - name: Read kubeconfig from first master (runs on master)
+      shell: "sudo cat {{ kubectl_config_src }}"
+      register: kubeconfig_content
+      run_once: true
+      tags: [kubectl_config]
+
+# Write kubeconfig on localhost using content from first master.
+- hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    env_name: "{{ env_name | default(env | default('localVM')) }}"
+    kubectl_config_dest: "{{ ansible_env.HOME }}/.kube/config-{{ env_name }}"
+  tasks:
+    - name: Write kubeconfig to control host
+      copy:
+        content: "{{ hostvars[groups['kube_control_plane'][0]]['kubeconfig_content']['stdout'] }}"
+        dest: "{{ kubectl_config_dest }}"
+        mode: "0600"
+      when: hostvars[groups['kube_control_plane'][0]]['kubeconfig_content'] is defined
+      tags: [kubectl_config]
