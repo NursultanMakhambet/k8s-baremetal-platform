@@ -46,8 +46,8 @@ cluster: ## Deploy cluster (Kubespray). ENV=local|prod|...
 platform: ## Create namespaces, optionally Argo CD. TAGS=namespaces|argocd. Use EXTRA_ARGS for -e vars.
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/platform.yml $(if $(TAGS),--tags $(TAGS)) $(EXTRA_ARGS)
 
-kubectl-config: ## Install kubectl and copy kubeconfig from first master. Kubeconfig: ~/.kube/config-<ENV>. Use EXTRA_ARGS="-K" if sudo on master needs a password.
-	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/kubectl_config.yml -e env_name=$(ENV) $(EXTRA_ARGS)
+kubectl-config: ## Install kubectl on control host and copy kubeconfig from first master. Kubeconfig: ~/.kube/config-<ENV>. Use EXTRA_ARGS="-K" if sudo on master needs a password.
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/controlhost_kubectl_config.yml -e env_name=$(ENV) $(EXTRA_ARGS)
 
 full: ## Full stack (one playbook). TAGS=prepare|cluster|platform to run only part. EXTRA_ARGS for platform vars.
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/full.yml $(if $(TAGS),--tags $(TAGS)) $(EXTRA_ARGS)

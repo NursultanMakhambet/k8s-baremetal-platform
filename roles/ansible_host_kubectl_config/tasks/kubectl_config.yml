@@ -1,0 +1,17 @@
+---
+
+- name: Read kubeconfig from first master (sudo cat root-only file)
+  shell: "sudo bash -c 'cat {{ kubectl_config_src }}'"
+  delegate_to: "{{ kubectl_first_master }}"
+  register: kubeconfig_content
+  run_once: true
+  changed_when: false
+  tags: [controlhost_kubectl_install, kubectl_config]
+
+- name: Write kubeconfig to control host
+  copy:
+    content: "{{ kubeconfig_content.stdout }}"
+    dest: "{{ kubectl_config_dest }}"
+    mode: "0600"
+  run_once: true
+  tags: [controlhost_kubectl_install, kubectl_config]

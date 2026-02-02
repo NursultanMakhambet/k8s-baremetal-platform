@@ -1,23 +1,23 @@
 ---
-# Install kubectl on the control host (localhost). Downloads binary to user dir (no sudo).
+# Install kubectl on the control host (Ansible host). Downloads binary to user dir (no sudo).
 
 - name: Ensure kubectl install directory exists
   file:
     path: "{{ kubectl_install_dir }}"
     state: directory
     mode: "0755"
-  tags: [kubectl_config]
+  tags: [controlhost_kubectl_install]
 
 - name: Download kubectl binary
   get_url:
     url: "https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
     dest: "{{ kubectl_install_dir }}/kubectl"
     mode: "0755"
-  tags: [kubectl_config]
+  tags: [controlhost_kubectl_install]
 
 - name: Ensure .kube directory exists on control host
   file:
     path: "{{ kubectl_config_dest | dirname }}"
     state: directory
     mode: "0755"
-  tags: [kubectl_config]
+  tags: [controlhost_kubectl_install]

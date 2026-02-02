@@ -1,18 +1,17 @@
 ---
-# Install kubectl on control host and copy kubeconfig from first master.
-# Two plays: (1) localhost = install kubectl; (2) first master = read config; (3) localhost = write config.
-# delegate_to from a localhost play runs on localhost, so we use a separate play that runs ON the master.
+# Install kubectl on control host (Ansible host) and copy kubeconfig from first master.
+# Plays: (1) controlhost = install kubectl; (2) first master = read config; (3) controlhost = write config.
 # Tags: kubectl_config.
 # Override kubectl_config_src in group_vars if your master uses a different path.
+# Inventory must define group "controlhost" (e.g. controlhost ansible_connection=local).
 
-- hosts: localhost
-  connection: local
+- hosts: controlhost
   gather_facts: true
   become: false
   vars:
     env_name: "{{ env_name | default(env | default('localVM')) }}"
   roles:
-    - kubectl_config
+    - ansible_host_kubectl_config
   tags: [kubectl_config]
 
 # Read kubeconfig ON the first master (no delegate_to).
@@ -30,9 +29,8 @@
       run_once: true
       tags: [kubectl_config]
 
-# Write kubeconfig on localhost using content from first master.
-- hosts: localhost
-  connection: local
+# Write kubeconfig on control host using content from first master.
+- hosts: controlhost
   gather_facts: true
   vars:
     env_name: "{{ env_name | default(env | default('localVM')) }}"

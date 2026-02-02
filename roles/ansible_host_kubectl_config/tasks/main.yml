@@ -1,0 +1,5 @@
+---
+
+- name: Include kubectl install tasks
+  include_tasks: kubectl_install.yml
+  tags: [kubectl_config, controlhost_kubectl_install]

@@ -1,5 +1,5 @@
 ---
-# Create platform namespaces via kubectl. Run on localhost with KUBECONFIG set.
+# Create platform namespaces via kubectl. Run on control host with KUBECONFIG set.
 
 - name: Create platform namespaces
   shell: "kubectl create namespace {{ item }}"

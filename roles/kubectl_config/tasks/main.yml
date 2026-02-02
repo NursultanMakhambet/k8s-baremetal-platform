@@ -1,7 +1,0 @@
----
-# Install kubectl on control host. Kubeconfig read/write is done in the playbook (two plays: master then localhost).
-# Task files: kubectl_install. Read/write are in playbooks/kubectl_config.yml (delegate_to from localhost does not run on the master).
-
-- name: Include kubectl install tasks
-  include_tasks: kubectl_install.yml
-  tags: [kubectl_config]

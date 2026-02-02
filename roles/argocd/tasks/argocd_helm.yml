@@ -1,5 +1,5 @@
 ---
-# Argo CD: install via Helm. Run on localhost with helm, KUBECONFIG set.
+# Argo CD: install via Helm. Run on control host with helm, KUBECONFIG set.
 # Only runs when platform_install_argocd is true (driven by is_ArgoCD_included or platform_install_argocd in group_vars).
 
 - name: Add Argo CD Helm repo

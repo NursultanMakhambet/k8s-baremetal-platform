@@ -1,0 +1,7 @@
+---
+
+kubectl_config_src: /root/.kube/config
+kubectl_config_dest: "{{ ansible_env.HOME | default('/tmp') }}/.kube/config-{{ env_name | default('localVM') }}"
+kubectl_first_master: "{{ groups['kube_control_plane'][0] }}"
+kubectl_install_dir: "{{ ansible_env.HOME | default('/tmp') }}/.local/bin"
+kubectl_version: "v1.30.2"

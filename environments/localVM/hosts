@@ -4,6 +4,9 @@ aux
 db
 storage
 
+[controlhost]
+controlhost ansible_connection=local
+
 [k8s:children]
 k8s_master
 k8s_worker

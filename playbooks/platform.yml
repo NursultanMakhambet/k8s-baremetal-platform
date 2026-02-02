@@ -1,9 +1,8 @@
 ---
-# Platform: namespaces + optional Argo CD. Runs on localhost (kubectl, KUBECONFIG, helm).
-# Tags: namespaces, argocd.
+# Platform: namespaces + optional Argo CD. Runs on control host (kubectl, KUBECONFIG, helm).
+# Tags: namespaces, argocd. Inventory must define group "controlhost".
 
-- hosts: localhost
-  connection: local
+- hosts: controlhost
   gather_facts: true
   become: false
   environment:
