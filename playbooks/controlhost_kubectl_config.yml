@@ -31,6 +31,7 @@
 
 # Write kubeconfig on control host using content from first master.
 - hosts: controlhost
+  become: false
   gather_facts: true
   vars:
     env_name: "{{ env_name | default(env | default('localVM')) }}"

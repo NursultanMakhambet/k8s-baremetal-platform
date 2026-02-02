@@ -1,6 +1,6 @@
 # Ansible playbooks
 
-**How to use:** See README (How to run). Playbooks: `prepare.yml`, `cluster.yml`, `platform.yml`, `controlhost_kubectl_config.yml`, `full.yml`. Platform and kubectl-config target the **control host** (group `controlhost` in inventory). Use `-i environments/<env>/hosts` and optional `--tags`.
+**How to use:** See README (How to run). Playbooks: `prepare.yml`, `cluster.yml`, `platform.yml`, `controlhost_kubectl_config.yml`, `full.yml`. Platform and kubectl-config target the **control host** (group `controlhost`; use a host with `ansible_connection=local`, e.g. `localhost`). Use `-i environments/<env>/hosts` and optional `--tags`.
 
 **How to add a new role:**
 1. Create `roles/<role_name>/tasks/main.yml` with only `include_tasks` calls to named task files (e.g. `include_tasks: my_task.yml`).
