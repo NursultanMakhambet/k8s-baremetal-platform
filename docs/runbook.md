@@ -2,7 +2,7 @@
 
 Use either **make** (recommended) or **ansible-playbook** directly. Both support environment and tags.
 
-**Environment** — Set which env to use: `local`, `dev`, `prod`, etc. Inventory path is `environments/<env>/hosts`. Default is `local` when using make.
+**Environment** — Set which env to use: `localVM`, `dev`, `prod`, etc. Inventory path is `environments/<env>/hosts`. Default is `localVM` when using make.
 
 **Tags** — Limit what runs: e.g. only firewall for Kubernetes, or only Postgres firewall, or only platform namespaces.
 
@@ -39,27 +39,27 @@ Use `-i environments/<env>/hosts` and optional `--tags`.
 **Prepare (firewall for k8s and/or postgres):**
 
 ```bash
-ansible-playbook -i environments/local/hosts playbooks/prepare.yml
-ansible-playbook -i environments/local/hosts playbooks/prepare.yml --tags k8s
-ansible-playbook -i environments/local/hosts playbooks/prepare.yml --tags postgres
-ansible-playbook -i environments/local/hosts playbooks/prepare.yml --tags firewall
+ansible-playbook -i environments/localVM/hosts playbooks/prepare.yml
+ansible-playbook -i environments/localVM/hosts playbooks/prepare.yml --tags k8s
+ansible-playbook -i environments/localVM/hosts playbooks/prepare.yml --tags postgres
+ansible-playbook -i environments/localVM/hosts playbooks/prepare.yml --tags firewall
 ```
 
 **Cluster (Kubespray):**
 
 ```bash
-ansible-playbook -i environments/local/hosts playbooks/cluster.yml
+ansible-playbook -i environments/localVM/hosts playbooks/cluster.yml
 ```
 
 **Platform (namespaces, optional Argo CD):**
 
 ```bash
-ansible-playbook -i environments/local/hosts playbooks/platform.yml
-ansible-playbook -i environments/local/hosts playbooks/platform.yml --tags namespaces
-ansible-playbook -i environments/local/hosts playbooks/platform.yml --tags argocd -e platform_install_argocd=true
+ansible-playbook -i environments/localVM/hosts playbooks/platform.yml
+ansible-playbook -i environments/localVM/hosts playbooks/platform.yml --tags namespaces
+ansible-playbook -i environments/localVM/hosts playbooks/platform.yml --tags argocd -e platform_install_argocd=true
 ```
 
-Replace `local` with your env (`dev`, `prod`, etc.). Platform playbook runs on localhost and needs `kubectl` and `KUBECONFIG` set; Argo CD install also needs `helm` in PATH.
+Replace `localVM` with your env (`dev`, `prod`, etc.) if different. Platform playbook runs on localhost and needs `kubectl` and `KUBECONFIG` set; Argo CD install also needs `helm` in PATH.
 
 ---
 

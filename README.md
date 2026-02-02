@@ -4,7 +4,7 @@ Bare-metal Kubernetes with Kubespray. This repo holds inventory and overrides; K
 
 ## Layout
 
-- **environments/** — One directory per environment (`local`, `dev`, `prod`, etc.). Each has `hosts` (inventory) and `group_vars/`.
+- **environments/** — One directory per environment (default `localVM`, or `dev`, `prod`, etc.). Each has `hosts` (inventory) and `group_vars/`.
 - **kubespray/** — Submodule. Do not edit; override behaviour via environment group_vars.
 - **playbooks/** — `cluster.yml` runs Kubespray; `platform.yml` creates platform namespaces and can install Argo CD; `prepare.yml` prepares nodes (e.g. firewall).
 

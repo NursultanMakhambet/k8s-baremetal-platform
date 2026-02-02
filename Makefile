@@ -1,7 +1,7 @@
 .PHONY: help bootstrap prepare cluster platform lint clean kubespray-init kubespray-update kubespray-pin grafana-pkg
 .DEFAULT_GOAL := help
 
-ENV ?= local
+ENV ?= localVM
 VENV := .venv
 VENV_BIN := $(VENV)/bin
 # Prefer Python 3.11/3.12 (ruamel.yaml.clib does not build on 3.13)
