@@ -1,26 +1,10 @@
 ---
-# Argo CD: install via Helm. Run on control host with helm, KUBECONFIG set.
-# Only runs when platform_install_argocd is true (driven by is_ArgoCD_included or platform_install_argocd in group_vars).
+# Argo CD: install via official manifest (no Helm hooks). Run on control host with kubectl, KUBECONFIG set.
+# Only runs when platform_install_argocd is true. Override argocd_install_manifest_url in group_vars to pin a version.
 
-- name: Add Argo CD Helm repo
-  shell: helm repo add argo https://argoproj.github.io/argo-helm
-  changed_when: true
-  run_once: true
-  when: platform_install_argocd | default(false) | bool
-  tags: [argocd]
-
-- name: Update Helm repos
-  shell: helm repo update
-  run_once: true
-  when: platform_install_argocd | default(false) | bool
-  tags: [argocd]
-
-- name: Install Argo CD in argocd namespace
-  shell: >
-    helm upgrade --install argocd argo/argo-cd
-    --namespace argocd
-    --create-namespace
-    --no-hooks
+- name: Install Argo CD in argocd namespace (manifest)
+  command: >
+    kubectl apply -n argocd -f {{ argocd_install_manifest_url }}
   run_once: true
   when: platform_install_argocd | default(false) | bool
   tags: [argocd]
