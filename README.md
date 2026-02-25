@@ -57,7 +57,24 @@ No tags = run everything in that playbook.
 
 ---
 
+**Connect to Argo CD.**  
+Argo CD server is a ClusterIP service. From a machine with `kubectl` and kubeconfig:
+
+1. Port-forward the server (e.g. to local port 8443):
+   ```bash
+   kubectl port-forward svc/argocd-server -n argocd 8443:443
+   ```
+2. Open **https://localhost:8443** in a browser (accept the self-signed cert).
+3. Login: username **admin**. Password:
+   - If you installed Argo CD via this repo’s platform role with `argocd_admin_password` set (and htpasswd available), use that value (default **admin**).
+   - Otherwise:  
+     `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
+
+---
+
 **Docs.**  
 - **docs/platform-namespaces.md** — Namespace table.  
 - **docs/ansible-playbooks.md** — How to use playbooks, how to add a new role.  
-- **docs/ansible-tags.md** — Tags layout, how to add tags.
+- **docs/ansible-tags.md** — Tags layout, how to add tags.  
+- **docs/scripts.md** — Bootstrap script and Makefile targets.  
+- **docs/pkgs.md** — Custom packages (e.g. Grafana RPM build).
