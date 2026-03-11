@@ -78,3 +78,55 @@ Argo CD server is a ClusterIP service. From a machine with `kubectl` and kubecon
 - **docs/ansible-tags.md** — Tags layout, how to add tags.  
 - **docs/scripts.md** — Bootstrap script and Makefile targets.  
 - **docs/pkgs.md** — Custom packages (e.g. Grafana RPM build).
+
+---
+
+## GitOps (Argo CD + Helm)
+
+After the cluster and Argo CD are running, deploy all platform apps via the App-of-Apps pattern.
+
+**Structure.**
+
+```
+argocd/
+  root-app.yaml            # App-of-Apps — apply this once
+  applications/
+    monitoring/
+      prometheus.yaml       # kube-prometheus-stack
+      grafana.yaml          # standalone Grafana
+    vault/
+      vault.yaml            # HashiCorp Vault (HA / Raft)
+    exporters/
+      node-exporter.yaml    # prometheus-node-exporter
+helm-values/
+  prometheus/values.yaml
+  grafana/values.yaml
+  vault/values.yaml
+```
+
+**Bootstrap (one-time).**
+
+```bash
+kubectl apply -f argocd/root-app.yaml
+```
+
+Argo CD will discover every Application YAML under `argocd/applications/` and deploy the corresponding Helm charts. All apps have automated sync with prune and self-heal enabled.
+
+**Adding a new app.** Create an `Application` manifest in `argocd/applications/<category>/`, add a values file in `helm-values/<app>/values.yaml`, commit, and push. The root app picks it up automatically.
+
+**Grafana admin secret.** The Grafana chart expects a pre-existing secret. Create it before the first sync:
+
+```bash
+kubectl -n monitoring create secret generic grafana-admin-credentials \
+  --from-literal=admin-user=admin \
+  --from-literal=admin-password='<your-password>'
+```
+
+**Vault initialization.** Vault pods start sealed. After the first sync, initialize and unseal:
+
+```bash
+kubectl -n vault exec vault-0 -- vault operator init
+kubectl -n vault exec vault-0 -- vault operator unseal  # repeat with 3 unseal keys
+kubectl -n vault exec vault-1 -- vault operator unseal
+kubectl -n vault exec vault-2 -- vault operator unseal
+```

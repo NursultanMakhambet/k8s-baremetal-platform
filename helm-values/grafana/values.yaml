@@ -1,0 +1,39 @@
+---
+# Grafana standalone values — bare-metal cluster
+
+replicas: 1
+
+persistence:
+  enabled: true
+  size: 5Gi
+  accessModes: ["ReadWriteOnce"]
+
+admin:
+  existingSecret: grafana-admin-credentials
+  userKey: admin-user
+  passwordKey: admin-password
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus-kube-prometheus-prometheus.monitoring.svc:9090
+        access: proxy
+        isDefault: true
+
+sidecar:
+  dashboards:
+    enabled: true
+    searchNamespace: monitoring
+  datasources:
+    enabled: true
+    searchNamespace: monitoring
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
