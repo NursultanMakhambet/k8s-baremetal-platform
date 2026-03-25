@@ -1,0 +1,27 @@
+---
+# Argo CD UI via Ingress. Requires nginx with --enable-ssl-passthrough on the controller for HTTPS to the Argo server.
+# If this fails, enable server.insecure in argocd-cmd-params-cm and use HTTP backend (port 80) instead.
+# Access: add "<ingress-node-ip> argocd.lab.k8s.local" to /etc/hosts, then https://argocd.lab.k8s.local
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: platform
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: argocd.lab.k8s.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  name: https

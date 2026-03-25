@@ -35,10 +35,12 @@ server:
 
         service_registration "kubernetes" {}
 
+  # Same as Grafana: needs a default StorageClass or set storageClass (chart key) explicitly.
   dataStorage:
     enabled: true
     size: 10Gi
     accessMode: ReadWriteOnce
+    # storageClass: local-path
 
   resources:
     requests:

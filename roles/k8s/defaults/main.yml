@@ -13,3 +13,26 @@ k8s_firewall_ports:
 k8s_firewall_pod_to_service: true
 kube_pods_subnet: "10.233.64.0/18"
 kube_service_addresses: "10.233.0.0/18"
+
+# Allow pod CIDR -> pod CIDR. Required for kube-proxy DNAT: traffic to a ClusterIP (e.g. CoreDNS 10.233.0.3) is forwarded to an
+# *endpoint pod IP* (still in pod CIDR). Firewalld "pod -> service CIDR" does not match that path, so DNS to ClusterIP times out.
+# Restrict east-west with NetworkPolicies if needed.
+k8s_firewall_pod_to_pod: false
+
+# Calico cross-node traffic often uses IPIP/VXLAN: firewalld may see outer headers with *node* IPs (e.g. 192.168.1.0/24), not pod CIDR.
+# Allow same-subnet mesh between nodes so encapsulated pod traffic is not dropped between hosts.
+k8s_firewall_allow_node_network_mesh: false
+k8s_firewall_node_mesh_networks: []
+
+# Kubespray NodeLocal DNS cache (see kubespray nodelocaldns_ip). Pods resolve via this link-local IP on each node.
+# Without firewalld rules, UDP/TCP 53 from the pod network to this address can time out and break in-cluster DNS.
+k8s_firewall_pod_to_nodelocaldns: true
+nodelocaldns_ip: "169.254.25.10"
+
+# When true, add kube_pods_subnet to firewalld "trusted" zone. Rich rules alone often miss the Calico/FORWARD path
+# to 169.254.x.x (NodeLocal DNS); trusting the pod CIDR fixes that on RHEL-like nodes. Tighten with NetworkPolicies.
+k8s_firewall_trust_pod_cidr: false
+
+# When true, add firewalld --direct iptables rules in INPUT and FORWARD for pod CIDR -> nodelocaldns_ip:53.
+# Required on some Calico+firewalld setups where rich rules + trusted source still leave UDP 53 timing out.
+k8s_firewall_nodelocaldns_direct: false

@@ -3,10 +3,14 @@
 
 replicas: 1
 
+# Requires a default StorageClass or set storageClassName. If no PVC binds: install e.g. local-path and mark default:
+# kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.30/deploy/local-path-storage.yaml
+# kubectl annotate storageclass local-path storageclass.kubernetes.io/is-default-class=true
 persistence:
   enabled: true
   size: 5Gi
   accessModes: ["ReadWriteOnce"]
+  # storageClassName: local-path
 
 admin:
   existingSecret: grafana-admin-credentials
@@ -22,6 +26,44 @@ datasources:
         url: http://prometheus-kube-prometheus-prometheus.monitoring.svc:9090
         access: proxy
         isDefault: true
+
+# Required for dashboards[].gnetId downloads (chart generates download_dashboards.sh + mkdir)
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: default
+        orgId: 1
+        folder: ""
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+
+# Imports from grafana.com (standalone Grafana has no kube-prometheus-stack bundled dashboards)
+dashboards:
+  default:
+    node-exporter-full:
+      gnetId: 1860
+      revision: 37
+      datasource: Prometheus
+    prometheus-2-stats:
+      gnetId: 3662
+      revision: 2
+      datasource: Prometheus
+    kubernetes-cluster:
+      gnetId: 7249
+      revision: 1
+      datasource: Prometheus
+    kube-state-metrics:
+      gnetId: 13332
+      revision: 1
+      datasource: Prometheus
+    blackbox-exporter:
+      gnetId: 7587
+      revision: 1
+      datasource: Prometheus
 
 sidecar:
   dashboards:

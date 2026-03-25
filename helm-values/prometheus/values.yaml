@@ -35,11 +35,29 @@ prometheus:
           resources:
             requests:
               storage: 50Gi
+    # Blackbox exporter (argocd/applications/exporters/blackbox-exporter.yaml) — HTTP/TCP probes
+    additionalScrapeConfigs:
+      - job_name: blackbox-http
+        metrics_path: /probe
+        params:
+          module: [http_2xx]
+        static_configs:
+          - targets:
+              - http://prometheus-kube-prometheus-prometheus.monitoring.svc:9090/-/healthy
+              - http://grafana.monitoring.svc/api/health
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: prometheus-blackbox-exporter.monitoring.svc:9115
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
 
+# Standalone node exporter is deployed via argocd/applications/exporters/node-exporter.yaml — do not duplicate here.
 nodeExporter:
-  enabled: true
+  enabled: false
 
 kubeEtcd:
   enabled: true

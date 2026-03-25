@@ -5,8 +5,8 @@
 ENV ?= localVM
 VENV := .venv
 VENV_BIN := $(VENV)/bin
-# Prefer Python 3.11/3.12 (ruamel.yaml.clib does not build on 3.13)
-PYTHON ?= $(shell command -v python3.11 2>/dev/null || command -v python3.12 2>/dev/null || command -v python3 2>/dev/null || echo python3)
+# Prefer Python 3.11/3.12 (ruamel.yaml.clib does not build on 3.13). ansible-lint>=24 needs Python>=3.10.
+PYTHON ?= $(shell command -v python3.11 2>/dev/null || command -v python3.12 2>/dev/null || command -v python3.10 2>/dev/null || command -v python3 2>/dev/null || echo python3)
 ANSIBLE_PLAYBOOK := $(VENV_BIN)/ansible-playbook
 INVENTORY := environments/$(ENV)/hosts
 ENV_GROUP_VARS := environments/$(ENV)/group_vars/all.yml
@@ -35,7 +35,11 @@ $(VENV_BIN)/activate:
 	$(PYTHON) -m venv $(VENV)
 	$(VENV_BIN)/pip install --upgrade pip
 	$(VENV_BIN)/pip install -r kubespray/requirements.txt
-	$(VENV_BIN)/pip install 'ansible-lint>=24,<25' 'ansible-core>=2.15,<2.16'
+	@if $(VENV_BIN)/python -c 'import sys; assert sys.version_info >= (3,10)' 2>/dev/null; then \
+		$(VENV_BIN)/pip install 'ansible-lint>=24,<25' 'ansible-core>=2.15,<2.16'; \
+	else \
+		$(VENV_BIN)/pip install 'ansible-lint>=6.22,<24' 'ansible-core>=2.15,<2.16'; \
+	fi
 
 prepare: ## Prepare nodes (firewall etc.). TAGS=k8s|postgres|firewall. ENV=local|prod|...
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/prepare.yml $(if $(TAGS),--tags $(TAGS))

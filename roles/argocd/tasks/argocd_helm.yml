@@ -73,3 +73,18 @@
   run_once: true
   when: platform_install_argocd | default(false) | bool
   tags: [argocd]
+
+# Upstream liveness uses GET /healthz?full=true with timeoutSeconds: 5; on slower nodes the full check
+# can exceed 5s, kubelet kills the container, repo-server never stays up, and Applications never sync.
+- name: Relax argocd-repo-server liveness probe (match readiness path, longer timeouts)
+  shell: |
+    kubectl patch deployment argocd-repo-server -n argocd --type=json -p='[
+      {"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe/httpGet/path","value":"/healthz"},
+      {"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe/initialDelaySeconds","value":60},
+      {"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe/periodSeconds","value":30},
+      {"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe/timeoutSeconds","value":30}
+    ]'
+    kubectl rollout status deployment/argocd-repo-server -n argocd --timeout=180s
+  run_once: true
+  when: platform_install_argocd | default(false) | bool
+  tags: [argocd]

@@ -19,3 +19,79 @@
     - k8s_firewall_pod_to_service | default(true) | bool
   notify: reload firewalld
   tags: [k8s, firewall]
+
+- name: Allow pod network to pod network (ClusterIP DNAT to endpoint pods, e.g. CoreDNS)
+  firewalld:
+    rich_rule: 'rule family="ipv4" source address="{{ kube_pods_subnet }}" destination address="{{ kube_pods_subnet }}" accept'
+    permanent: true
+    state: enabled
+    immediate: true
+  when:
+    - ansible_os_family == "RedHat"
+    - k8s_firewall_pod_to_pod | default(false) | bool
+  notify: reload firewalld
+  tags: [k8s, firewall]
+
+- name: Allow cluster node network mesh (Calico IPIP/VXLAN outer traffic between nodes)
+  firewalld:
+    rich_rule: 'rule family="ipv4" source address="{{ item }}" destination address="{{ item }}" accept'
+    permanent: true
+    state: enabled
+    immediate: true
+  loop: "{{ k8s_firewall_node_mesh_networks | default([]) }}"
+  when:
+    - ansible_os_family == "RedHat"
+    - k8s_firewall_allow_node_network_mesh | default(false) | bool
+    - (k8s_firewall_node_mesh_networks | default([])) | length > 0
+  notify: reload firewalld
+  tags: [k8s, firewall]
+
+- name: Allow pod network to NodeLocal DNS (UDP/TCP 53 to nodelocaldns_ip)
+  firewalld:
+    rich_rule: 'rule family="ipv4" source address="{{ kube_pods_subnet }}" destination address="{{ nodelocaldns_ip }}" port port="53" protocol="{{ item }}" accept'
+    permanent: true
+    state: enabled
+    immediate: true
+  loop:
+    - udp
+    - tcp
+  when:
+    - ansible_os_family == "RedHat"
+    - k8s_firewall_pod_to_nodelocaldns | default(true) | bool
+  notify: reload firewalld
+  tags: [k8s, firewall]
+
+- name: Trust Kubernetes pod CIDR in firewalld (NodeLocal DNS via Calico often needs this)
+  firewalld:
+    zone: trusted
+    source: "{{ kube_pods_subnet }}"
+    permanent: true
+    state: enabled
+    immediate: true
+  when:
+    - ansible_os_family == "RedHat"
+    - k8s_firewall_trust_pod_cidr | default(false) | bool
+  notify: reload firewalld
+  tags: [k8s, firewall]
+
+# Rich rules + trusted source are not always enough: Calico pod->link-local DNS may hit FORWARD/INPUT in an order
+# firewalld rich rules do not match. --direct inserts early in iptables filter INPUT/FORWARD.
+- name: NodeLocal DNS - firewalld direct iptables (INPUT and FORWARD, UDP and TCP 53)
+  shell: |
+    set +e
+    POD="{{ kube_pods_subnet }}"
+    VIP="{{ nodelocaldns_ip }}/32"
+    for CH in INPUT FORWARD; do
+      for P in udp tcp; do
+        firewall-cmd --permanent --direct --add-rule ipv4 filter "${CH}" 0 \
+          -s "${POD}" -d "${VIP}" -p "${P}" -m "${P}" --dport 53 -j ACCEPT
+      done
+    done
+    set -e
+    firewall-cmd --reload
+  when:
+    - ansible_os_family == "RedHat"
+    - k8s_firewall_nodelocaldns_direct | default(false) | bool
+  failed_when: false
+  changed_when: true
+  tags: [k8s, firewall]

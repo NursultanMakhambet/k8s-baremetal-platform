@@ -1,0 +1,25 @@
+---
+# HTTP Ingress for Grafana. Host matches environments/localVM: cluster_domain lab.k8s.local -> grafana.lab.k8s.local
+# Access: add "<ingress-node-ip> grafana.lab.k8s.local" to /etc/hosts, then http://grafana.lab.k8s.local
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: platform
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: grafana.lab.k8s.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80

@@ -40,6 +40,19 @@ backup_provider: "local"   # local | s3 | nfs
 enable_network_policies: true
 enable_pod_security_standards: true
 
+# Firewalld + Calico: rich rules to NodeLocal DNS (169.254.25.10) are often not enough; trust pod CIDR so DNS works.
+k8s_firewall_trust_pod_cidr: true
+
+# If pods still cannot resolve via 169.254.25.10 (nslookup times out), direct INPUT/FORWARD rules are required.
+k8s_firewall_nodelocaldns_direct: true
+
+# kube-proxy rewrites ClusterIP -> pod IP; firewalld must allow pod CIDR -> pod CIDR or DNS to 10.233.0.3 also times out.
+k8s_firewall_pod_to_pod: true
+
+# Calico cross-node: outer IPs are on the node LAN; allow node-to-node mesh (same as trusted_networks).
+k8s_firewall_allow_node_network_mesh: true
+k8s_firewall_node_mesh_networks: "{{ trusted_networks }}"
+
 # Argo CD install: use is_ArgoCD_included above, or override here.
 # platform_install_argocd: true
 
