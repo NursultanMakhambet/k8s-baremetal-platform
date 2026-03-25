@@ -12,6 +12,12 @@ persistence:
   accessModes: ["ReadWriteOnce"]
   # storageClassName: local-path
 
+# Default init runs `chown -R 472:472 /var/lib/grafana`; that often fails on local-path PVCs
+# (permissions/SELinux on Rocky) and leaves the pod in Init:CrashLoopBackOff. Pod fsGroup 472
+# still corrects volume ownership for the grafana container.
+initChownData:
+  enabled: false
+
 admin:
   existingSecret: grafana-admin-credentials
   userKey: admin-user
@@ -65,13 +71,14 @@ dashboards:
       revision: 1
       datasource: Prometheus
 
+# Do not enable sidecar dashboards/datasources while using datasources + dashboardProviders +
+# dashboards (gnetId) above — the Grafana chart documents they must not be combined; mixing
+# them often results in no dashboards (or broken provisioning).
 sidecar:
   dashboards:
-    enabled: true
-    searchNamespace: monitoring
+    enabled: false
   datasources:
-    enabled: true
-    searchNamespace: monitoring
+    enabled: false
 
 resources:
   requests:
