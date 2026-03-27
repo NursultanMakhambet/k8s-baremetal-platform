@@ -70,6 +70,110 @@ dashboards:
       gnetId: 7587
       revision: 1
       datasource: Prometheus
+    # Editable copy: helm-values/grafana/dashboards/proxmox-smart.json (sync json: block when changing)
+    proxmox-smart:
+      json: |
+        {
+          "annotations": { "list": [] },
+          "editable": true,
+          "fiscalYearStartMonth": 0,
+          "graphTooltip": 1,
+          "id": null,
+          "links": [],
+          "liveNow": false,
+          "panels": [
+            {
+              "datasource": "Prometheus",
+              "fieldConfig": {
+                "defaults": {
+                  "color": { "mode": "palette-classic" },
+                  "custom": { "drawStyle": "line", "fillOpacity": 10 },
+                  "unit": "celsius"
+                },
+                "overrides": []
+              },
+              "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+              "id": 1,
+              "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+              "targets": [
+                {
+                  "expr": "smartctl_device_temperature{job=\"proxmox\",role=\"hypervisor\"}",
+                  "legendFormat": "{{device}} {{temperature_type}}",
+                  "refId": "A"
+                }
+              ],
+              "title": "smartctl_temperature (smartctl_device_temperature)",
+              "type": "timeseries"
+            },
+            {
+              "datasource": "Prometheus",
+              "fieldConfig": {
+                "defaults": { "color": { "mode": "palette-classic" }, "unit": "h" },
+                "overrides": []
+              },
+              "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+              "id": 2,
+              "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+              "targets": [
+                {
+                  "expr": "smartctl_device_power_on_seconds{job=\"proxmox\",role=\"hypervisor\"} / 3600",
+                  "legendFormat": "{{device}}",
+                  "refId": "A"
+                }
+              ],
+              "title": "smartctl_power_on_hours (from smartctl_device_power_on_seconds)",
+              "type": "timeseries"
+            },
+            {
+              "datasource": "Prometheus",
+              "fieldConfig": {
+                "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" },
+                "overrides": []
+              },
+              "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+              "id": 3,
+              "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+              "targets": [
+                {
+                  "expr": "smartctl_device_attribute{job=\"proxmox\",role=\"hypervisor\",attribute_name=\"Reallocated_Sector_Ct\"}",
+                  "legendFormat": "{{device}}",
+                  "refId": "A"
+                }
+              ],
+              "title": "smartctl_reallocated_sectors (Reallocated_Sector_Ct attribute)",
+              "type": "timeseries"
+            },
+            {
+              "datasource": "Prometheus",
+              "fieldConfig": {
+                "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" },
+                "overrides": []
+              },
+              "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+              "id": 4,
+              "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+              "targets": [
+                {
+                  "expr": "smartctl_device_attribute{job=\"proxmox\",role=\"hypervisor\",attribute_name=\"Current_Pending_Sector\"}",
+                  "legendFormat": "{{device}}",
+                  "refId": "A"
+                }
+              ],
+              "title": "smartctl_current_pending_sectors (Current_Pending_Sector attribute)",
+              "type": "timeseries"
+            }
+          ],
+          "refresh": "30s",
+          "schemaVersion": 39,
+          "tags": ["proxmox", "smart", "hypervisor"],
+          "templating": { "list": [] },
+          "time": { "from": "now-6h", "to": "now" },
+          "timepicker": {},
+          "timezone": "",
+          "title": "Proxmox SMART / storage",
+          "uid": "proxmox-smart-storage",
+          "version": 1
+        }
 
 # Do not enable sidecar dashboards/datasources while using datasources + dashboardProviders +
 # dashboards (gnetId) above — the Grafana chart documents they must not be combined; mixing

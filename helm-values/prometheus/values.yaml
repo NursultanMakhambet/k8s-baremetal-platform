@@ -17,6 +17,8 @@ alertmanager:
               storage: 10Gi
 
 prometheus:
+  # Must be true or the Prometheus CR / StatefulSet is not created (Grafana will have no TSDB behind the Service).
+  enabled: true
   prometheusSpec:
     replicas: 2
     retention: 15d
@@ -36,6 +38,7 @@ prometheus:
             requests:
               storage: 50Gi
     # Blackbox exporter (argocd/applications/exporters/blackbox-exporter.yaml) — HTTP/TCP probes
+    # Proxmox hypervisor: node_exporter :9100 and smartctl_exporter :9633 (firewall must allow from Prometheus pods).
     additionalScrapeConfigs:
       - job_name: blackbox-http
         metrics_path: /probe
@@ -52,6 +55,37 @@ prometheus:
             target_label: instance
           - target_label: __address__
             replacement: prometheus-blackbox-exporter.monitoring.svc:9115
+      - job_name: proxmox-node
+        static_configs:
+          - targets:
+              - "192.168.1.2:9100"
+            labels:
+              job: proxmox
+              role: hypervisor
+              host: proxmox
+        # Prometheus normally sets job from job_name; keep job=proxmox for queries/dashboards.
+        relabel_configs:
+          - target_label: job
+            replacement: proxmox
+          - target_label: role
+            replacement: hypervisor
+          - target_label: host
+            replacement: proxmox
+      - job_name: proxmox-smartctl
+        static_configs:
+          - targets:
+              - "192.168.1.2:9633"
+            labels:
+              job: proxmox
+              role: hypervisor
+              host: proxmox
+        relabel_configs:
+          - target_label: job
+            replacement: proxmox
+          - target_label: role
+            replacement: hypervisor
+          - target_label: host
+            replacement: proxmox
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
 
