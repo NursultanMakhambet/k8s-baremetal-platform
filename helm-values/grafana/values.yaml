@@ -29,6 +29,7 @@ datasources:
     datasources:
       - name: Prometheus
         type: prometheus
+        uid: prometheus
         url: http://prometheus-kube-prometheus-prometheus.monitoring.svc:9090
         access: proxy
         isDefault: true
@@ -83,7 +84,7 @@ dashboards:
           "liveNow": false,
           "panels": [
             {
-              "datasource": "Prometheus",
+              "datasource": {"type": "prometheus", "uid": "prometheus"},
               "fieldConfig": {
                 "defaults": {
                   "color": { "mode": "palette-classic" },
@@ -106,7 +107,7 @@ dashboards:
               "type": "timeseries"
             },
             {
-              "datasource": "Prometheus",
+              "datasource": {"type": "prometheus", "uid": "prometheus"},
               "fieldConfig": {
                 "defaults": { "color": { "mode": "palette-classic" }, "unit": "h" },
                 "overrides": []
@@ -125,7 +126,7 @@ dashboards:
               "type": "timeseries"
             },
             {
-              "datasource": "Prometheus",
+              "datasource": {"type": "prometheus", "uid": "prometheus"},
               "fieldConfig": {
                 "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" },
                 "overrides": []
@@ -144,7 +145,7 @@ dashboards:
               "type": "timeseries"
             },
             {
-              "datasource": "Prometheus",
+              "datasource": {"type": "prometheus", "uid": "prometheus"},
               "fieldConfig": {
                 "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" },
                 "overrides": []

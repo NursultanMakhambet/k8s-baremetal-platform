@@ -90,6 +90,8 @@ prometheus:
     podMonitorSelectorNilUsesHelmValues: false
 
 # Standalone node exporter is deployed via argocd/applications/exporters/node-exporter.yaml — do not duplicate here.
+# If the chart’s node-exporter DaemonSet is left enabled, host port 9100 conflicts and Argo CD sync can block
+# (waiting for that DaemonSet) so the Prometheus StatefulSet never deploys — keep this false.
 nodeExporter:
   enabled: false
 
