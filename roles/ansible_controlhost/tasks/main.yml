@@ -7,3 +7,8 @@
 - name: Include Helm install tasks
   include_tasks: helm_install.yml
   tags: [kubectl_config, controlhost_helm_install]
+
+- name: Include Docker insecure-registry client config (optional)
+  include_tasks: docker_insecure_registries.yml
+  when: controlhost_configure_docker_insecure_registries | default(false) | bool
+  tags: [controlhost, controlhost_docker, argocd]

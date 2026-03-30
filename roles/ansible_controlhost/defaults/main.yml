@@ -8,3 +8,9 @@ kubectl_version: "v1.30.2"
 helm_version: "v3.16.3"
 helm_tarball_path: "{{ ansible_env.HOME | default('/tmp') }}/.cache/helm-{{ helm_version }}-linux-amd64.tar.gz"
 helm_extract_dir: "{{ ansible_env.HOME | default('/tmp') }}/.cache/helm-extract-{{ helm_version }}"
+
+# Control host: trust the private registry (HTTP behind ingress). Hostname from group_vars
+# private_registry_host (e.g. registry.lab.k8s.local). Podman → registries.conf.d; dockerd → daemon.json.
+controlhost_configure_docker_insecure_registries: true
+controlhost_docker_insecure_registries:
+  - "{{ private_registry_host | default('registry.lab.k8s.local') }}"

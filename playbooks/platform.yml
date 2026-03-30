@@ -6,7 +6,9 @@
   gather_facts: true
   become: false
   vars:
-    env_name: "{{ env_name | default(env | default('localVM')) }}"
+    # Do not use a variable named `env` here — in Jinja it resolves to the play
+    # `environment` dict and recurses (KUBECONFIG → env_name → …).
+    env_name: "{{ env_name | default(lookup('env', 'ENV', errors='ignore') | default('localVM', true)) }}"
     # From group_vars is_ArgoCD_included; override with -e platform_install_argocd=false
     platform_install_argocd: "{{ is_ArgoCD_included | default(false) | bool }}"
     controlhost_path: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH | default('/usr/local/bin:/usr/bin:/bin') }}"

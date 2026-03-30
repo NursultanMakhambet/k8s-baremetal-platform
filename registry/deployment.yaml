@@ -17,9 +17,17 @@ spec:
       containers:
         - name: registry
           image: registry:2
+          env:
+            # Correct redirects / URLs when served behind nginx ingress.
+            - name: REGISTRY_HTTP_RELATIVEURLS
+              value: "true"
           ports:
             - containerPort: 5000
               name: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
           volumeMounts:
             - name: storage
               mountPath: /var/lib/registry

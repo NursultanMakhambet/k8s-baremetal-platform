@@ -1,0 +1,154 @@
+---
+# Control host: trust private HTTP registry (127.0.0.1:5000) for kubectl port-forward to registry:5000.
+
+# Implicit gather_facts is skipped when the play is run with narrow --tags (e.g. controlhost_docker only).
+- name: Gather facts if missing (narrow --tags skip implicit setup)
+  ansible.builtin.setup:
+  when: ansible_os_family is not defined
+  tags: [controlhost, controlhost_docker]
+
+- name: Check whether Docker CLI is installed
+  ansible.builtin.command: which docker
+  register: controlhost_which_docker_initial
+  changed_when: false
+  failed_when: false
+  tags: [controlhost, controlhost_docker]
+
+- name: Install Docker when missing (RedHat family)
+  ansible.builtin.package:
+    name: docker
+    state: present
+  become: true
+  when:
+    - controlhost_which_docker_initial.rc != 0
+    - ansible_os_family == "RedHat"
+  tags: [controlhost, controlhost_docker]
+
+# Use a different register name than the first check — if this task is skipped, Ansible must not
+# overwrite the first result with a skipped dict (no .rc).
+- name: Re-check Docker CLI after package install
+  ansible.builtin.command: which docker
+  register: controlhost_which_docker_recheck
+  changed_when: false
+  failed_when: false
+  when: controlhost_which_docker_initial.rc != 0
+  tags: [controlhost, controlhost_docker]
+
+- name: Set effective docker CLI check (exit code)
+  ansible.builtin.set_fact:
+    controlhost_docker_cmd_rc: "{{ controlhost_which_docker_initial.rc if controlhost_which_docker_initial.rc == 0 else controlhost_which_docker_recheck.rc }}"
+  when: controlhost_which_docker_initial.rc == 0 or (controlhost_which_docker_recheck is defined and not (controlhost_which_docker_recheck.skipped | default(false)))
+  tags: [controlhost, controlhost_docker]
+
+- name: Warn when Docker is still unavailable
+  ansible.builtin.debug:
+    msg: "Docker not in PATH after install attempt; install manually (or use Podman + registries.conf)."
+  when: controlhost_docker_cmd_rc | default(1) | int != 0
+  tags: [controlhost, controlhost_docker]
+
+# Rocky/RHEL often ship `podman-docker` (docker CLI → podman) with no docker.service.
+- name: Detect docker.service unit (real dockerd)
+  ansible.builtin.command: systemctl cat docker.service
+  register: controlhost_docker_systemd_cat
+  changed_when: false
+  failed_when: false
+  when: controlhost_docker_cmd_rc | default(1) | int == 0
+  tags: [controlhost, controlhost_docker]
+
+- name: Enable and start Docker (only when dockerd unit exists)
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+  become: true
+  when:
+    - controlhost_docker_cmd_rc | default(1) | int == 0
+    - controlhost_docker_systemd_cat is defined
+    - controlhost_docker_systemd_cat.rc == 0
+  tags: [controlhost, controlhost_docker]
+
+- name: Note podman-docker (no docker.service)
+  ansible.builtin.debug:
+    msg: "docker CLI is present but docker.service is missing (typical: podman-docker). Using Podman registries drop-in instead of /etc/docker/daemon.json."
+  when:
+    - controlhost_docker_cmd_rc | default(1) | int == 0
+    - controlhost_docker_systemd_cat is defined
+    - controlhost_docker_systemd_cat.rc != 0
+  tags: [controlhost, controlhost_docker]
+
+- name: Ensure /etc/docker exists (dockerd)
+  ansible.builtin.file:
+    path: /etc/docker
+    state: directory
+    mode: "0755"
+  become: true
+  when:
+    - controlhost_docker_cmd_rc | default(1) | int == 0
+    - controlhost_docker_systemd_cat is defined
+    - controlhost_docker_systemd_cat.rc == 0
+  tags: [controlhost, controlhost_docker]
+
+- name: Write Docker daemon.json for insecure registries (dockerd only)
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    mode: "0644"
+    content: "{{ {'insecure-registries': controlhost_docker_insecure_registries | default([])} | to_nice_json }}\n"
+  become: true
+  register: controlhost_docker_daemon_json
+  when:
+    - controlhost_docker_cmd_rc | default(1) | int == 0
+    - controlhost_docker_systemd_cat is defined
+    - controlhost_docker_systemd_cat.rc == 0
+    - (controlhost_docker_insecure_registries | default([]) | length) > 0
+  tags: [controlhost, controlhost_docker]
+
+- name: Restart Docker to apply daemon.json
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+  become: true
+  when:
+    - controlhost_docker_cmd_rc | default(1) | int == 0
+    - controlhost_docker_systemd_cat is defined
+    - controlhost_docker_systemd_cat.rc == 0
+    - controlhost_docker_daemon_json is defined
+    - not (controlhost_docker_daemon_json.skipped | default(false))
+    - controlhost_docker_daemon_json.changed | default(false) | bool
+  tags: [controlhost, controlhost_docker]
+
+# Podman (podman-docker): insecure registry via registries.conf.d
+- name: Ensure /etc/containers hierarchy exists (podman)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /etc/containers
+    - /etc/containers/registries.conf.d
+  become: true
+  when:
+    - controlhost_docker_cmd_rc | default(1) | int == 0
+    - controlhost_docker_systemd_cat is defined
+    - controlhost_docker_systemd_cat.rc != 0
+    - (controlhost_docker_insecure_registries | default([]) | length) > 0
+  tags: [controlhost, controlhost_docker]
+
+- name: Write Podman insecure registry drop-in
+  ansible.builtin.copy:
+    dest: /etc/containers/registries.conf.d/900-k8s-private-registry.conf
+    mode: "0644"
+    content: |
+      # Managed by ansible (ansible_controlhost)
+      {% for loc in controlhost_docker_insecure_registries | default([]) %}
+      [[registry]]
+      prefix = "{{ loc }}"
+      location = "{{ loc }}"
+      insecure = true
+      {% endfor %}
+  become: true
+  when:
+    - controlhost_docker_cmd_rc | default(1) | int == 0
+    - controlhost_docker_systemd_cat is defined
+    - controlhost_docker_systemd_cat.rc != 0
+    - (controlhost_docker_insecure_registries | default([]) | length) > 0
+  tags: [controlhost, controlhost_docker]

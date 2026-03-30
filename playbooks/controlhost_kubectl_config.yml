@@ -9,7 +9,7 @@
   gather_facts: true
   become: false
   vars:
-    env_name: "{{ env_name | default(env | default('localVM')) }}"
+    env_name: "{{ env_name | default(lookup('env', 'ENV', errors='ignore') | default('localVM', true)) }}"
   roles:
     - ansible_controlhost
   tags: [kubectl_config]
@@ -19,7 +19,7 @@
   become: true
   gather_facts: false
   vars:
-    env_name: "{{ env_name | default(env | default('localVM')) }}"
+    env_name: "{{ env_name | default(lookup('env', 'ENV', errors='ignore') | default('localVM', true)) }}"
     # Path on master; override in group_vars if different (e.g. /etc/kubernetes/admin.conf)
     kubectl_config_src: /root/.kube/config
   tasks:
@@ -34,7 +34,7 @@
   become: false
   gather_facts: true
   vars:
-    env_name: "{{ env_name | default(env | default('localVM')) }}"
+    env_name: "{{ env_name | default(lookup('env', 'ENV', errors='ignore') | default('localVM', true)) }}"
     kubectl_config_dest: "{{ ansible_env.HOME }}/.kube/config-{{ env_name }}"
     first_master: "{{ hostvars[groups['kube_control_plane'][0]] }}"
     api_server_url: "https://{{ first_master['ansible_host'] | default(groups['kube_control_plane'][0]) }}:{{ kubectl_config_apiserver_port | default(6443) }}"
