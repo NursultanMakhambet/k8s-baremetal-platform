@@ -13,4 +13,4 @@ helm_extract_dir: "{{ ansible_env.HOME | default('/tmp') }}/.cache/helm-extract-
 # private_registry_host (e.g. registry.lab.k8s.local). Podman → registries.conf.d; dockerd → daemon.json.
 controlhost_configure_docker_insecure_registries: true
 controlhost_docker_insecure_registries:
-  - "{{ private_registry_host | default('registry.lab.k8s.local') }}"
+  - "{{ private_registry_host | default('registry.lab.k8s.local:30801') }}"
