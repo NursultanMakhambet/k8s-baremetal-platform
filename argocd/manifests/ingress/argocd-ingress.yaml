@@ -1,7 +1,7 @@
 ---
 # Argo CD UI via Ingress (HTTP to argocd-server). TLS is optional at the ingress; no ssl-passthrough required.
 # Requires argocd-cmd-params-cm server.insecure=true (see argocd-cmd-params-cm.yaml in this directory).
-# Access: add "<ingress-node-ip> argocd.lab.k8s.local" to /etc/hosts, then e.g. http://argocd.lab.k8s.local:<node-http-port>/
+# Browser: "<any-node-IP> argocd.local" in /etc/hosts, then http://argocd.local:30801
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -15,7 +15,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: argocd.lab.k8s.local
+    - host: argocd.local
       http:
         paths:
           - path: /

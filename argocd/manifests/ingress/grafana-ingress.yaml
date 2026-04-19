@@ -1,6 +1,7 @@
 ---
-# HTTP Ingress for Grafana. Host matches environments/localVM: cluster_domain lab.k8s.local -> grafana.lab.k8s.local
-# Access: add "<ingress-node-ip> grafana.lab.k8s.local" to /etc/hosts, then http://grafana.lab.k8s.local
+# HTTP Ingress for Grafana.
+# Browser: add to /etc/hosts (or DNS): "<any-node-IP> grafana.local"
+# Then open: http://grafana.local:30801  (NodePort from ingress-nginx; see group_vars ingress_nginx_http_nodeport)
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -13,7 +14,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: grafana.lab.k8s.local
+    - host: grafana.local
       http:
         paths:
           - path: /
