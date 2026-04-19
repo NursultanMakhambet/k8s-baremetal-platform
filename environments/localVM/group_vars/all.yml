@@ -17,6 +17,8 @@ control_plane_domain: "cp.{{ cluster_domain }}"
 
 # nginx ingress exposes HTTP on a NodePort (not host :80). Match: kubectl get svc -n ingress-nginx ingress-nginx-controller
 ingress_nginx_http_nodeport: 30801
+# Must match Ingress host + NodePort or UI redirects to https:// and breaks in the browser
+argocd_server_url: "http://argocd.local:30801"
 # Push/pull / image refs — include the port (e.g. docker push registry.lab.k8s.local:30801/foo:tag)
 private_registry_host: "registry.{{ cluster_domain }}:{{ ingress_nginx_http_nodeport }}"
 

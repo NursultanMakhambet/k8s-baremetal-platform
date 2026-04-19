@@ -88,3 +88,15 @@
   run_once: true
   when: platform_install_argocd | default(false) | bool
   tags: [argocd]
+
+# Without data.url matching the browser URL (http + NodePort), Argo redirects to https://argocd.local/ and the UI is unreachable.
+- name: Set Argo CD external URL in argocd-cm (HTTP ingress)
+  shell: |
+    kubectl patch cm argocd-cm -n argocd --type=merge -p '{"data":{"url":"{{ argocd_server_url }}"}}'
+    kubectl rollout restart deployment/argocd-server -n argocd
+    kubectl rollout status deployment/argocd-server -n argocd --timeout=180s
+  run_once: true
+  when:
+    - platform_install_argocd | default(false) | bool
+    - argocd_server_url | default('') | length > 0
+  tags: [argocd]

@@ -3,3 +3,5 @@
 argocd_install_manifest_url: "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
 # Initial admin password (set in argocd-secret). Requires htpasswd (apache2-utils / httpd-tools) on control host.
 argocd_admin_password: "admin"
+# If set (e.g. http://argocd.local:30801), patch argocd-cm so the UI does not redirect to https://
+argocd_server_url: ""
