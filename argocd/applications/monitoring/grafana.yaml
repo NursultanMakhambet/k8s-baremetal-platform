@@ -19,7 +19,7 @@ spec:
         releaseName: grafana
         valueFiles:
           - $values/helm-values/grafana/values.yaml
-    - repoURL: git@github.com:NursultanMakhambet/k8s-baremetal-platform.git
+    - repoURL: https://github.com/NursultanMakhambet/k8s-baremetal-platform.git
       targetRevision: main
       ref: values
   destination:
