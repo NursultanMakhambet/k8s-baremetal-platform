@@ -1,0 +1,5 @@
+---
+nvidia_device_plugin_manifest_url: "https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v0.17.0/deployments/static/nvidia-device-plugin.yml"
+nvidia_gpu_worker_node_name: "worker2.k8s.local"
+kubectl_kubeconfig_path: "/etc/kubernetes/admin.conf"
+kubectl_binary_path: "/usr/local/bin/kubectl"

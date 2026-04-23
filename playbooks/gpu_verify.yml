@@ -1,0 +1,128 @@
+---
+# End-to-end verification for worker2 GPU + Kubernetes scheduling.
+# Usage:
+#   ansible-playbook -i environments/localVM/hosts playbooks/gpu_verify.yml
+
+- hosts: worker2.k8s.local
+  become: true
+  gather_facts: false
+  vars:
+    nvidia_smi_binary: "nvidia-smi"
+  tasks:
+    - name: Verify nvidia-smi on worker2
+      command: "{{ nvidia_smi_binary }}"
+      register: worker2_nvidia_smi
+      changed_when: false
+
+    - name: Ensure GPU is visible on worker2
+      assert:
+        that:
+          - "'NVIDIA-SMI' in worker2_nvidia_smi.stdout"
+        fail_msg: "worker2 nvidia-smi check failed."
+
+- hosts: kube_control_plane[0]
+  become: true
+  gather_facts: false
+  vars:
+    kubectl_kubeconfig_path: "/etc/kubernetes/admin.conf"
+    kubectl_binary_path: "/usr/local/bin/kubectl"
+    nvidia_gpu_worker_node_name: "worker2.k8s.local"
+    nvidia_cuda_test_pod_name: "nvidia-cuda-smoke"
+    nvidia_cuda_test_image: "nvidia/cuda:12.0.0-base-ubuntu22.04"
+  tasks:
+    - name: Read worker2 node Ready status
+      shell: >-
+        {{ kubectl_binary_path }} --kubeconfig {{ kubectl_kubeconfig_path }}
+        get node {{ nvidia_gpu_worker_node_name }} --no-headers | awk '{print $2}'
+      register: worker2_ready_status
+      changed_when: false
+      retries: 20
+      delay: 5
+      until: worker2_ready_status.stdout == "Ready"
+
+    - name: Assert worker2 node is Ready
+      assert:
+        that:
+          - worker2_ready_status.stdout == "Ready"
+        fail_msg: "worker2 node is not Ready."
+
+    - name: Read worker2 GPU allocatable
+      shell: >-
+        {{ kubectl_binary_path }} --kubeconfig {{ kubectl_kubeconfig_path }}
+        get node {{ nvidia_gpu_worker_node_name }}
+        -o go-template='{{ "{{" }} index .status.allocatable "nvidia.com/gpu" {{ "}}" }}'
+      register: worker2_gpu_allocatable
+      changed_when: false
+      retries: 20
+      delay: 5
+      until: worker2_gpu_allocatable.stdout == "1"
+
+    - name: Assert worker2 GPU allocatable is one
+      assert:
+        that:
+          - worker2_gpu_allocatable.stdout == "1"
+        fail_msg: "worker2 allocatable nvidia.com/gpu is not 1."
+
+    - name: Write CUDA smoke test pod manifest
+      copy:
+        dest: "/tmp/{{ nvidia_cuda_test_pod_name }}.yaml"
+        mode: "0644"
+        content: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: {{ nvidia_cuda_test_pod_name }}
+            namespace: default
+          spec:
+            restartPolicy: Never
+            nodeName: {{ nvidia_gpu_worker_node_name }}
+            containers:
+              - name: cuda
+                image: {{ nvidia_cuda_test_image }}
+                command: ["bash", "-lc", "nvidia-smi"]
+                resources:
+                  limits:
+                    nvidia.com/gpu: 1
+
+    - name: Remove old CUDA smoke test pod before apply
+      command: >-
+        {{ kubectl_binary_path }} --kubeconfig {{ kubectl_kubeconfig_path }}
+        delete pod {{ nvidia_cuda_test_pod_name }} --ignore-not-found=true
+      changed_when: false
+
+    - name: Apply CUDA smoke test pod
+      command: >-
+        {{ kubectl_binary_path }} --kubeconfig {{ kubectl_kubeconfig_path }}
+        apply -f /tmp/{{ nvidia_cuda_test_pod_name }}.yaml
+      register: cuda_test_apply
+      changed_when: "'created' in cuda_test_apply.stdout or 'configured' in cuda_test_apply.stdout"
+
+    - name: Wait for CUDA smoke test pod completion
+      command: >-
+        {{ kubectl_binary_path }} --kubeconfig {{ kubectl_kubeconfig_path }}
+        get pod {{ nvidia_cuda_test_pod_name }}
+        -o jsonpath={.status.phase}
+      register: cuda_test_phase
+      changed_when: false
+      retries: 30
+      delay: 10
+      until: cuda_test_phase.stdout in ["Succeeded", "Failed"]
+
+    - name: Collect CUDA smoke test pod logs
+      command: >-
+        {{ kubectl_binary_path }} --kubeconfig {{ kubectl_kubeconfig_path }}
+        logs {{ nvidia_cuda_test_pod_name }}
+      register: cuda_test_logs
+      changed_when: false
+
+    - name: Ensure CUDA smoke test reports NVIDIA-SMI output
+      assert:
+        that:
+          - "'NVIDIA-SMI' in cuda_test_logs.stdout"
+        fail_msg: "CUDA smoke test pod did not report NVIDIA-SMI output."
+
+    - name: Remove CUDA smoke test pod
+      command: >-
+        {{ kubectl_binary_path }} --kubeconfig {{ kubectl_kubeconfig_path }}
+        delete pod {{ nvidia_cuda_test_pod_name }} --ignore-not-found=true
+      changed_when: false

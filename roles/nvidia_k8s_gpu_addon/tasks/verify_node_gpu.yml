@@ -1,0 +1,25 @@
+---
+- name: Read worker2 node status until GPU capacity appears
+  command: >-
+    {{ kubectl_binary_path }} --kubeconfig {{ kubectl_kubeconfig_path }}
+    get node {{ nvidia_gpu_worker_node_name }} -o json
+  register: worker2_node_status
+  changed_when: false
+  retries: 30
+  delay: 10
+  until: >
+    ((worker2_node_status.stdout | from_json).status.capacity['nvidia.com/gpu'] | default('')) == "1"
+
+- name: Extract worker2 GPU capacity and allocatable from node status
+  set_fact:
+    worker2_gpu_capacity:
+      stdout: "{{ (worker2_node_status.stdout | from_json).status.capacity['nvidia.com/gpu'] | default('') }}"
+    worker2_gpu_allocatable:
+      stdout: "{{ (worker2_node_status.stdout | from_json).status.allocatable['nvidia.com/gpu'] | default('') }}"
+
+- name: Assert worker2 reports one GPU to Kubernetes
+  assert:
+    that:
+      - worker2_gpu_capacity.stdout == "1"
+      - worker2_gpu_allocatable.stdout == "1"
+    fail_msg: "worker2 does not report nvidia.com/gpu=1 in capacity/allocatable."

@@ -1,0 +1,12 @@
+---
+- name: Run nvidia-smi on worker
+  command: "{{ nvidia_smi_binary }}"
+  register: nvidia_smi_result
+  changed_when: false
+
+- name: Ensure NVIDIA GPU is visible on worker
+  assert:
+    that:
+      - "'NVIDIA-SMI' in nvidia_smi_result.stdout"
+      - "'GeForce GTX 1070' in nvidia_smi_result.stdout or '1070' in nvidia_smi_result.stdout"
+    fail_msg: "nvidia-smi did not detect the GTX 1070 on worker2."

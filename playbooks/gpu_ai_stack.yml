@@ -1,0 +1,18 @@
+---
+# Configure worker2 NVIDIA runtime + deploy k8s NVIDIA device plugin.
+# Usage:
+#   ansible-playbook -i environments/localVM/hosts playbooks/gpu_ai_stack.yml
+
+- hosts: worker2.k8s.local
+  become: true
+  gather_facts: true
+  roles:
+    - nvidia_gpu_worker
+  tags: [gpu_worker]
+
+- hosts: kube_control_plane[0]
+  become: true
+  gather_facts: false
+  roles:
+    - nvidia_k8s_gpu_addon
+  tags: [gpu_addon]

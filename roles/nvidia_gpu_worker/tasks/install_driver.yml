@@ -1,0 +1,94 @@
+---
+- name: Install NVIDIA driver on Debian-family systems
+  when: ansible_os_family == "Debian"
+  block:
+    - name: Ensure apt prerequisites for NVIDIA packages
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+        update_cache: true
+        state: present
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+
+    - name: Install NVIDIA driver package (Debian)
+      apt:
+        name: "{{ nvidia_driver_package_debian }}"
+        state: present
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+
+- name: Install NVIDIA driver on RedHat-family systems
+  when: ansible_os_family == "RedHat"
+  block:
+    - name: Ensure dnf prerequisites for NVIDIA packages
+      dnf:
+        name:
+          - dnf-plugins-core
+          - curl
+          - ca-certificates
+        state: present
+
+    - name: Enable Rocky CRB repository
+      command: dnf -y config-manager --set-enabled crb
+      register: rocky_crb_enable
+      changed_when: "'enabled' in (rocky_crb_enable.stdout | lower) or 'enabled' in (rocky_crb_enable.stderr | lower)"
+      failed_when: false
+
+    - name: Ensure EPEL repository is installed
+      dnf:
+        name: epel-release
+        state: present
+
+    - name: Install kernel and DKMS prerequisites
+      dnf:
+        name:
+          - dkms
+          - kernel-devel
+          - kernel-headers
+        state: present
+
+    - name: Configure NVIDIA CUDA repository (RHEL family)
+      yum_repository:
+        name: "{{ nvidia_cuda_rhel_repo_name }}"
+        description: "NVIDIA CUDA Repository"
+        baseurl: "{{ nvidia_cuda_rhel_repo_baseurl }}"
+        enabled: true
+        gpgcheck: true
+        gpgkey: "{{ nvidia_cuda_rhel_repo_gpgkey }}"
+
+    - name: Reset NVIDIA driver module stream
+      command: dnf -y module reset nvidia-driver
+      register: nvidia_driver_module_reset
+      changed_when: "'Complete!' in nvidia_driver_module_reset.stdout"
+      failed_when: false
+
+    - name: Remove conflicting NVIDIA driver packages before stream install
+      shell: >
+        dnf -y remove
+        'nvidia-driver*'
+        'kmod-nvidia*'
+        'xorg-x11-nvidia*'
+        'libnvidia*'
+        'nvidia-libXNVCtrl*'
+        'nvidia-modprobe*'
+        'nvidia-persistenced*'
+        'nvidia-settings*'
+        'nvidia-xconfig*'
+      register: nvidia_driver_remove_conflicts
+      changed_when: "'Removed:' in nvidia_driver_remove_conflicts.stdout"
+      failed_when: false
+
+    - name: Install NVIDIA driver stream
+      command: dnf -y module install nvidia-driver:{{ nvidia_driver_module_stream_redhat }}
+      register: nvidia_driver_module_install
+      changed_when: "'Complete!' in nvidia_driver_module_install.stdout"
+      failed_when: false
+
+    - name: Install NVIDIA driver package fallback (RedHat)
+      dnf:
+        name: "{{ nvidia_driver_package_redhat }}"
+        state: present
+      when: nvidia_driver_module_install.rc != 0

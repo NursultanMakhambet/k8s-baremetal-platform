@@ -1,0 +1,31 @@
+---
+- name: Pre-check NVIDIA GPU visibility
+  command: "{{ nvidia_smi_binary }}"
+  register: nvidia_smi_precheck
+  changed_when: false
+  failed_when: false
+  tags: [gpu_worker, gpu_verify]
+
+- name: Install NVIDIA driver
+  include_tasks: install_driver.yml
+  when: nvidia_smi_precheck.rc != 0
+  tags: [gpu_worker, nvidia_driver]
+
+- name: Install NVIDIA container toolkit
+  include_tasks: install_container_toolkit.yml
+  when: nvidia_smi_precheck.rc != 0
+  tags: [gpu_worker, nvidia_toolkit]
+
+- name: Configure containerd for NVIDIA runtime
+  include_tasks: configure_containerd.yml
+  when: nvidia_smi_precheck.rc != 0
+  tags: [gpu_worker, containerd_nvidia]
+
+- name: Reboot worker if NVIDIA kernel modules may need reload
+  include_tasks: reboot_if_needed.yml
+  when: nvidia_smi_precheck.rc != 0
+  tags: [gpu_worker, nvidia_reboot]
+
+- name: Verify NVIDIA GPU availability
+  include_tasks: verify_gpu.yml
+  tags: [gpu_worker, gpu_verify]

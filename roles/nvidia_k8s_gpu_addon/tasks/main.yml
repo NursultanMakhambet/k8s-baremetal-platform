@@ -1,0 +1,8 @@
+---
+- name: Deploy NVIDIA k8s device plugin
+  include_tasks: deploy_plugin.yml
+  tags: [gpu_addon, nvidia_device_plugin]
+
+- name: Verify node GPU capacity and allocatable values
+  include_tasks: verify_node_gpu.yml
+  tags: [gpu_addon, nvidia_device_plugin, gpu_verify]

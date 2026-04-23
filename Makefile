@@ -1,5 +1,5 @@
 # How to use, add roles/tags: see README and docs/ansible-playbooks.md, docs/ansible-tags.md
-.PHONY: help bootstrap prepare cluster platform kubectl-config lint clean kubespray-init kubespray-update kubespray-pin grafana-pkg
+.PHONY: help bootstrap prepare cluster platform kubectl-config gpu-ai gpu-verify lint clean kubespray-init kubespray-update kubespray-pin grafana-pkg
 .DEFAULT_GOAL := help
 
 ENV ?= localVM
@@ -52,6 +52,12 @@ platform: ## Create namespaces, optionally Argo CD. TAGS=namespaces|argocd. Use 
 
 kubectl-config: ## Install kubectl on control host and copy kubeconfig from first master. Kubeconfig: ~/.kube/config-<ENV>. Use EXTRA_ARGS="-K" if sudo on master needs a password.
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/controlhost_kubectl_config.yml -e env_name=$(ENV) $(EXTRA_ARGS)
+
+gpu-ai: ## Install NVIDIA worker runtime and deploy nvidia-device-plugin.
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/gpu_ai_stack.yml $(EXTRA_ARGS)
+
+gpu-verify: ## Verify worker2 GPU in node resources and CUDA smoke test pod.
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/gpu_verify.yml $(EXTRA_ARGS)
 
 full: ## Full stack (one playbook). TAGS=prepare|cluster|platform to run only part. EXTRA_ARGS for platform vars.
 	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) playbooks/full.yml $(if $(TAGS),--tags $(TAGS)) $(EXTRA_ARGS)

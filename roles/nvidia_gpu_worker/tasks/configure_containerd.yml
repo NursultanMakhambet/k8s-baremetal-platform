@@ -1,0 +1,10 @@
+---
+- name: Configure NVIDIA runtime for containerd
+  command: nvidia-ctk runtime configure --runtime=containerd
+  register: nvidia_ctk_configure
+  changed_when: "'no change' not in (nvidia_ctk_configure.stdout | lower)"
+
+- name: Restart containerd service
+  service:
+    name: containerd
+    state: restarted

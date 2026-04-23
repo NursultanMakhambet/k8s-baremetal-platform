@@ -1,0 +1,58 @@
+---
+- name: Check whether kubectl exists on control-plane node
+  stat:
+    path: "{{ kubectl_binary_path }}"
+  register: kubectl_binary_stat
+
+- name: Read latest stable kubectl version
+  uri:
+    url: "https://dl.k8s.io/release/stable.txt"
+    return_content: true
+  register: kubectl_stable_version
+  when: not kubectl_binary_stat.stat.exists
+
+- name: Install kubectl on control-plane node when missing
+  get_url:
+    url: "https://dl.k8s.io/release/{{ kubectl_stable_version.content | trim }}/bin/linux/amd64/kubectl"
+    dest: "{{ kubectl_binary_path }}"
+    mode: "0755"
+  when: not kubectl_binary_stat.stat.exists
+
+- name: Upload NVIDIA device plugin manifest to control-plane node
+  copy:
+    src: "nvidia-device-plugin.yml"
+    dest: "/tmp/nvidia-device-plugin.yml"
+    mode: "0644"
+
+- name: Apply NVIDIA device plugin manifest
+  command: >-
+    {{ kubectl_binary_path }} --request-timeout=120s --kubeconfig {{ kubectl_kubeconfig_path }}
+    apply -f /tmp/nvidia-device-plugin.yml
+  register: nvidia_plugin_apply
+  changed_when: "'created' in nvidia_plugin_apply.stdout or 'configured' in nvidia_plugin_apply.stdout"
+  retries: 5
+  delay: 10
+  until: nvidia_plugin_apply.rc == 0
+
+- name: Wait for NVIDIA device plugin DaemonSet rollout
+  command: >-
+    {{ kubectl_binary_path }} --request-timeout=120s --kubeconfig {{ kubectl_kubeconfig_path }}
+    -n kube-system rollout status daemonset/nvidia-device-plugin-daemonset --timeout=300s
+  register: nvidia_plugin_rollout
+  changed_when: false
+  retries: 5
+  delay: 10
+  until: nvidia_plugin_rollout.rc == 0
+
+- name: Wait for NVIDIA device plugin pod to be ready on worker2
+  command: >-
+    {{ kubectl_binary_path }} --kubeconfig {{ kubectl_kubeconfig_path }}
+    -n kube-system get pods
+    -l name=nvidia-device-plugin-ds
+    --field-selector spec.nodeName={{ nvidia_gpu_worker_node_name }}
+    -o jsonpath={.items[0].status.containerStatuses[0].ready}
+  register: nvidia_worker_plugin_ready
+  changed_when: false
+  retries: 30
+  delay: 10
+  until: nvidia_worker_plugin_ready.stdout == "true"

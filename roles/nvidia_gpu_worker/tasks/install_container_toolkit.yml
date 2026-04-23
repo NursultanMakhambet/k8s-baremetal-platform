@@ -1,0 +1,39 @@
+---
+- name: Install NVIDIA container toolkit on Debian-family systems
+  when: ansible_os_family == "Debian"
+  block:
+    - name: Install NVIDIA container toolkit repository keyring
+      shell: |
+        set -euo pipefail
+        curl -fsSL "{{ nvidia_toolkit_repo_key_url }}" | gpg --dearmor -o "{{ nvidia_toolkit_repo_keyring_path }}"
+      args:
+        creates: "{{ nvidia_toolkit_repo_keyring_path }}"
+
+    - name: Configure NVIDIA container toolkit apt repository
+      shell: |
+        set -euo pipefail
+        curl -fsSL "{{ nvidia_toolkit_repo_list_url }}" \
+          | sed "s#deb https://#deb [signed-by={{ nvidia_toolkit_repo_keyring_path }}] https://#g" \
+          > "{{ nvidia_toolkit_repo_list_path }}"
+
+    - name: Install NVIDIA container toolkit package (Debian)
+      apt:
+        name: "{{ nvidia_container_toolkit_package }}"
+        update_cache: true
+        state: present
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+
+- name: Install NVIDIA container toolkit on RedHat-family systems
+  when: ansible_os_family == "RedHat"
+  block:
+    - name: Configure NVIDIA container toolkit RPM repository
+      get_url:
+        url: "{{ nvidia_toolkit_rpm_repo_url }}"
+        dest: "{{ nvidia_toolkit_rpm_repo_file }}"
+        mode: "0644"
+
+    - name: Install NVIDIA container toolkit package (RedHat)
+      dnf:
+        name: "{{ nvidia_container_toolkit_package }}"
+        state: present
